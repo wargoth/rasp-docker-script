@@ -1,0 +1,30 @@
+unchanged:
+--- WRF/wrfsi/gui/guiTk/FileDialog.pm	2017-06-02 04:27:35.864321261 +0000
++++ WRF/wrfsi/gui/guiTk/FileDialog.pm	2017-06-02 04:27:53.288930996 +0000
+@@ -697,10 +697,10 @@
+ ####  PRIVATE METHODS AND SUBROUTINES ####
+ sub IsNum {
+     my($parm) = @_;
+-    my($warnSave) = $;
+-    $ = 0;
++    my($warnSave) = $^W;
++    $^W = 0;
+     my($res) = (($parm + 0) eq $parm);
+-    $ = $warnSave;
++    $^W = $warnSave;
+     return $res;
+ }
+ 
+only in patch2:
+unchanged:
+--- WRF/wrfsi/gui/guiTk/srt_bounding_box.pl	2017-06-02 04:28:21.645923661 +0000
++++ WRF/wrfsi/gui/guiTk/srt_bounding_box.pl	2017-06-02 04:28:35.882422199 +0000
+@@ -1521,7 +1521,7 @@
+     my ($ll,$tt,$rr,$bb);
+ 
+   #  if ($nest_l[$nest_index]=="") { 
+-       if (!defined %parent_hash) { return; } # No MOAD.
++       if (! %parent_hash) { return; } # No MOAD.
+        # Get the nestbox corners in lat,lon (from i,j).
+        ($latSW,$lonSW)=&map_utils::ij_to_latlon($nest_lli,$nest_llj,%parent_hash);
+        ($latNE,$lonNE)=&map_utils::ij_to_latlon($nest_uri,$nest_urj,%parent_hash);
