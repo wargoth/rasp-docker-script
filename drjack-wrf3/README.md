@@ -13,7 +13,9 @@ $ docker run -it yavalek/drjack-wrf3
 
 # Building
 Read comments in the script and download files mentioned in the script into the directory so you don't have to hit rasp.inn.leedsmet.ac.uk
-server every time you build the image. Run:
+server every time you build the image. Backup of these files: https://www.dropbox.com/sh/n25p0nz6bgvjzlb/AADGw1FeL-cY8ssBtMp-DT50a?dl=0
+
+Run:
 
 ```
 $ docker build -t my-rasp .
