@@ -25,7 +25,7 @@ WORKDIR /root/
 
 #
 # Unpack software packages
-# Assuming you have downloaded these files from here: http://rasp.inn.leedsmet.ac.uk/SOFTWARE/WRFV3.x/
+# Assuming you have downloaded these files from here: http://rasp-uk.uk/SOFTWARE/WRFV3.x/
 #
 ADD raspGM.tgz $BASEDIR
 ADD raspGM-bin.tgz $BASEDIR
@@ -35,10 +35,10 @@ ADD PANOCHE.tgz $BASEDIR
 #
 # Alternatively tell the script to download them
 #
-#RUN curl -SL http://rasp.inn.leedsmet.ac.uk/SOFTWARE/WRFV3.x/raspGM.tgz | tar xC $BASEDIR
-#RUN curl -SL http://rasp.inn.leedsmet.ac.uk/SOFTWARE/WRFV3.x/raspGM-bin.tgz | tar xC $BASEDIR
-#RUN curl -SL http://rasp.inn.leedsmet.ac.uk/SOFTWARE/WRFV3.x/rangs.tgz | tar xC $BASEDIR
-#RUN curl -SL http://rasp.inn.leedsmet.ac.uk/SOFTWARE/WRFV3.x/PANOCHE.tgz | tar xC $BASEDIR
+#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/raspGM.tgz | tar xC $BASEDIR
+#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/raspGM-bin.tgz | tar xC $BASEDIR
+#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/rangs.tgz | tar xC $BASEDIR
+#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/PANOCHE.tgz | tar xC $BASEDIR
 
 
 #
