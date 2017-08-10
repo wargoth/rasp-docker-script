@@ -853,7 +853,7 @@ function loadImage(dirn)
 			else{
 				ximgURL += ".curr." + t + "lst.d2" ;
 			}
-			if(param.match("sounding")){
+			if(param.startsWith("sounding") || param.startsWith("boxwmax")){
 				isSounding = true;
 				siz = (Format == "Landscape" ? imgHt : imgWid);
 				Pics[x] = new Image(siz, siz);
