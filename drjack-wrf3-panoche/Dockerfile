@@ -21,4 +21,8 @@ RUN cd $BASEDIR/PANOCHE/ \
 # cleanup
 RUN rm -rf $BASEDIR/geog
 
-CMD ["bash"]
+WORKDIR /root/rasp/
+
+VOLUME ["/root/rasp/PANOCHE/OUT/", "/root/rasp/PANOCHE/LOG/"]
+
+CMD ["runGM", "PANOCHE"]
