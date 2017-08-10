@@ -86,7 +86,8 @@ function initIt()
 
 	T.setTime(Now);					// Today
 	day.options[0] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()] + " - Today", mkdat(T));
-	day.options[1] = new Option("Today - Latest data - 4Km ", mkdat(T));
+	T.setTime(Now + mS_Day);	// Tomorrow
+	day.options[1] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()], mkdat(T));
 
 
 	/***********************/
