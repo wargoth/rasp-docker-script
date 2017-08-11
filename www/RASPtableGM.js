@@ -123,12 +123,12 @@ function initIt()
 
 	for(var i = 0; i < times.length; i++) {
 		document.getElementById("Time").options[i] = new Option(times[i], times[i]);
-		if(i == 0)
+		if(times[i] == '1400')
 			document.getElementById("Time").options[i].selected = true;
 	}
 
 	document.getElementById("Day").options[0].selected    = true;				// Today
-	document.getElementById("Param").options[1].selected  = true;				// wstar
+	document.getElementById("Param").options[2].selected  = true;				// hcrit
 	document.getElementById("desc").innerHTML             = paramListLite[document.getElementById("Param").selectedIndex][3] ;
 
 	/* Sort out Archive years for 1 year */
