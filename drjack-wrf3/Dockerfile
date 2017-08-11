@@ -49,17 +49,6 @@ RUN echo export BASEDIR=$BASEDIR >> /etc/bashrc \
   && echo export PATH+=:\$BASEDIR/bin >> /etc/bashrc
 
 
-# Update to 3.9
-COPY WPS-3.9.tgz /root/
-RUN cd $BASEDIR \
-  && tar xf ~/WPS-3.9.tgz ./bin ./RUN.TABLES \
-  && ln -sf ungrib-V3.9.exe bin/ungrib.exe \
-  && ln -sf METGRID.TBL.ARW-V3.9 RUN.TABLES/METGRID.TBL \
-  && ln -sf Vtable.GFS-V3.9 RUN.TABLES/Vtable \
-  && ln -sf Vtable.GFS-V3.9 RUN.TABLES/Vtable.GFS \
-  && rm -f ~/WPS-3.9.tgz
-
-
 # cleanup 
 RUN yum clean all
 
