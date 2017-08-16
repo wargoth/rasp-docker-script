@@ -102,7 +102,7 @@
   if(defined $ENV{'START_HOUR'}) {
     $start = int($ENV{'START_HOUR'});
   }
-  $init_time = int(POSIX::floor(`date -u +%H` / 6 - 1) * 6);
+  $init_time = int(POSIX::floor(`date -u +%H` / 6 ) * 6);
   # if it's EOD, pick next day. This also works with +1, +2, etc runs
   if (($start % 24) < $init_time) {
      $start = $start + 24;
