@@ -63,12 +63,12 @@
 
 ###### SET DOMAIN PARAMETERS FOR STAGE1 [NON-WINDOW] ITERATION
   #12hr_run:
-  $FORECAST_PERIODHRS{'POLAND'}[0] = 15;              # used only by initialization programs
+  $FORECAST_PERIODHRS{'POLAND'}[0] = 18;              # used only by initialization programs
   #15hr_run:    $FORECAST_PERIODHRS{'POLAND'}[0] = 15;       # used only by initialization programs
   ### SET DOMAIN START/END TIMES
-  $DOMAIN1_STARTHH{'POLAND'}[0] = '06';               # must have grib file available for this time
+  $DOMAIN1_STARTHH{'POLAND'}[0] = '00';               # must have grib file available for this time
   #12hr_run:
-  $DOMAIN1_ENDHH{'POLAND'}[0] = '21';                 # 
+  $DOMAIN1_ENDHH{'POLAND'}[0] = '18';                 # 
   #15hr_run:    $DOMAIN1_ENDHH{'POLAND'}[0] = '03';              # 
   $DOMAIN2_START_DELTAMINS{'POLAND'}[0] = 0;          # if non-zero, must set namelist.template INPUT_FROM_FILE=false
   $DOMAIN2_END_DELTAMINS{'POLAND'}[0] = 0;            # relative to domain1
@@ -83,7 +83,7 @@
   @{$PLOT_IMAGE_SIZE{'POLAND'}[0]} = ( '', '1600x1600' );
   ### SET HISTORY HOUR FOR IMAGES PLOTTED WHEN $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
   #12hr_run:
-  @{$PLOT_HHMMLIST{'POLAND'}[0]} =  ('1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900' );
+  @{$PLOT_HHMMLIST{'POLAND'}[0]} =  ('0800', '0900', '1000', '1100', '1200', '1300', '1400', '1500', '1600', '1700', '1800', '1900', '2000' );
   #15hr_run:  @{$PLOT_HHMMLIST{'POLAND'}[0]} =  ( '1200', '1500', '1800', '2100', '0000','0300' );
   ### CREATE WEBSITE IMAGE LOOP
   #12hr_run:
