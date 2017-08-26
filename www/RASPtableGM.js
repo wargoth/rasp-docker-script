@@ -83,11 +83,15 @@ function initIt()
 	var monthName = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 	var day = document.getElementById("Day");	// save typing
+    
+    var NUM_DAYS = 6
 
 	T.setTime(Now);					// Today
 	day.options[0] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()] + " - Today", mkdat(T));
-	T.setTime(Now + mS_Day);	// Tomorrow
-	day.options[1] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()], mkdat(T));
+    for (i = 1; i < NUM_DAYS; i++) {
+        T.setTime(Now + mS_Day * i);
+        day.options[i] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()], mkdat(T));
+    }
 
 
 	/***********************/
@@ -526,13 +530,13 @@ function getResolution()
 	else {
 		switch( document.getElementById("Day").options.selectedIndex){
 		case 0:	return( 2);	break;  // Today    - 2Km
-		case 1: return( 4);	break;  // Today    - 4Km
-		case 2: return( 4);	break;  // Tomorrow - 4Km
+		case 1: 
+		case 2: 
 		case 3:                     // Rest of week - 12Km
 		case 4:
 		case 5:
 		case 6: 
-		case 7: return(12); break;
+		case 7: return(4); break;
 		default:
 			alert("getResolution: Unknown Day Index!");
 			return(12);	// What else?
@@ -958,6 +962,7 @@ function doAirspace()
 
 function newclick(E)
 {
+	return;
 	var tail;
 	var parameter;
 	var str;
