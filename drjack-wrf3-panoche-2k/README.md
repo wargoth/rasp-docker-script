@@ -3,14 +3,14 @@ This is a modified PANOCHE region 2k resolution, running on production environme
 # Building
 
 ```
-docker build -t my-rasp-panoche .
+docker build -t my-rasp-panoche-2k .
 ```
 
 # Running
 ## Run the current day (or next if it's end of the day)
 
 ```
-$ docker run -v /tmp/OUT:/root/rasp/PANOCHE/OUT/ -v /tmp/LOG:/root/rasp/PANOCHE/LOG/  --rm my-rasp-panoche
+$ docker run -v /tmp/OUT:/root/rasp/PANOCHE/OUT/ -v /tmp/LOG:/root/rasp/PANOCHE/LOG/  --rm my-rasp-panoche-2k
 ```
 
 ## Run the current day +1, +2, etc
@@ -21,5 +21,5 @@ START_HOUR environment variable can override default start hour which is 12. See
 * START_HOUR=60 for current day +2, etc
 
 ```
-docker run -v /tmp/OUT:/root/rasp/PANOCHE/OUT/ -v /tmp/LOG:/root/rasp/PANOCHE/LOG/ --rm -e START_HOUR=36 my-rasp-panoche
+docker run -v /tmp/OUT:/root/rasp/PANOCHE/OUT/ -v /tmp/LOG:/root/rasp/PANOCHE/LOG/ --rm -e START_HOUR=36 my-rasp-panoche-2k
 ```
