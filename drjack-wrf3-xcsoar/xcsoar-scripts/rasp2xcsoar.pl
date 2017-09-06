@@ -6,8 +6,9 @@ print "  [path] local path to the directory containing .data files\n";
 print "         or http link to the web folder containing .data.zip files.\n\n";
 
 $BASEDIR = $ENV{'BASEDIR'};
-$d2w2 = ($ARGV[0] eq "-w2") ? "w2" : "d2";
-$indir = $d2w2 ? $ARGV[1] : $ARGV[0];
+$haveW2 = ($ARGV[0] eq "-w2");
+$d2w2 = ($haveW2) ? "w2" : "d2";
+$indir = $haveW2 ? $ARGV[1] : $ARGV[0];
 if ($indir eq "") {
   $indir = "$BASEDIR/RASP/HTML/BYRON/FCST/";
   print "Trying to use the default path: $indir\n";
@@ -95,7 +96,7 @@ foreach $item (0..$#itemlist) {
     }
     if (-r $infile) {
       print "$infile\n";
-      $comd = "./rasp2jp2.pl $infile $jp2file";
+      $comd = "rasp2jp2.pl $infile $jp2file";
       if (!system($comd)) {
 	system("zip -m $zipfile -n jp2 $jp2file > /dev/null");
       } else {

@@ -29,7 +29,7 @@ $debug = 1;
 $rfile = $infile;
 open(INFILE,"<$rfile");
 while(<INFILE>) {
-  if (/(.*) \[(.*)] Valid/) {
+  if (/Param[=] (.*) Unit[=] (.*) Mult[=]/) {
     $title = $1;
     $units = $2;
     convert_units();
@@ -47,12 +47,6 @@ while(<INFILE>) {
   }
 }
 close(INFILE);
-
-  if(!$w2)
-  {
-   $lat_2 = $lat_1 = $lat_0;
-   $lon_1 = $lon_0;
-  }
 
   print "Title '$title' units $units\n";
   print "dx $dx lambert $lat_1,$lat_2,$lon_1, center $lat_0,$lon_0\n";
@@ -132,7 +126,7 @@ $xmid = ($xmin+$xmax)/2;
 $x_0=0;
 $y_0=0;
 
-$s_proj = "+proj=lcc +lat_1=$lat_1 +lat_2=$lat_2 +lat_0=$lat_0 +lon_0=$lon_0 +x_0=$x_0 +y_0=$y_0 +datum=WGS84";
+$s_proj = "+proj=lcc +lat_1=$lat_1 +lat_2=$lat_2 +pm=${lon_1}dW +lat_0=$lat_0 +lon_0=$lon_0 +x_0=$x_0 +y_0=$y_0 +datum=WGS84";
 $t_proj = "+proj=latlong +datum=WGS84";
 
 #TODO: fail if cs2cs doesn't exist
@@ -250,7 +244,7 @@ sub convert_units {
     $unitconv = 1.0;
     return;
   }
-  if ($units eq "ft AGL - max=18000") {
+  if ($units =~ /ft AGL/) {
     $unitconv = 0.3048; # ft to m
     return;
   }

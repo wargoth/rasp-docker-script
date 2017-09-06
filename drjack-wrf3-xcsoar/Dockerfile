@@ -3,7 +3,6 @@ FROM yavalek/drjack-wrf3:latest
 WORKDIR /tmp/
 
 ADD jasper-1.701.0.XCSoar.tgz /tmp/
-COPY xcsoar-scripts/* $BASEDIR/bin/
 
 # initialize
 RUN yum -y update \
@@ -18,5 +17,6 @@ RUN cd jasper-1.701.0.XCSoar \
   && make -j16 install \
   && rm -rf /tmp/jasper-1.701.0.XCSoar/
 
-  
+COPY xcsoar-scripts/* $BASEDIR/bin/
+
 WORKDIR /root/rasp/
