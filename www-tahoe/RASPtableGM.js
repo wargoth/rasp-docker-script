@@ -354,6 +354,34 @@ function newMap()
 	};
 
 	map = new google.maps.Map(document.getElementById("zoomBox"), mapOptions);
+    
+    var panocheCoords = [[34.30849,-120.5233], [35.05076,-118.7833], [40.9458,-122.786], [40.13586,-124.6302]];
+    panocheCoords = panocheCoords.map(function (c) { return {lat: c[0], lng: c[1]} })
+
+    // Construct the polygon.
+    var panochePoly = new google.maps.Polygon({
+        paths: panocheCoords,
+        strokeColor: 'grey',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: 'grey',
+        fillOpacity: 0.35
+    });
+    panochePoly.setMap(map);
+    
+    var infoWindow = new google.maps.InfoWindow();
+    google.maps.event.addListener(panochePoly, 'mouseover', function (e) {
+        infoWindow.setContent("Go to Panoche RASP");
+        var latLng = e.latLng;
+        infoWindow.setPosition(latLng);
+        infoWindow.open(map);
+    });
+    google.maps.event.addListener(panochePoly, 'mouseout', function (e) {
+        infoWindow.close();
+    });
+
+    google.maps.event.addListener(panochePoly, "click", function() { window.location = "https://panoche-rasp.nfshost.com" });
+
 	return( map );
 }
 

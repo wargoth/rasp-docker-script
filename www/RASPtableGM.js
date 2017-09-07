@@ -354,6 +354,34 @@ function newMap()
 	};
 
 	map = new google.maps.Map(document.getElementById("zoomBox"), mapOptions);
+    
+    var tahoeCoords = [[35.757,-118.8333], [36.89242,-116.252], [42.17592,-120.0537], [40.9493,-122.7693]]
+    tahoeCoords = tahoeCoords.map(function (c) { return {lat: c[0], lng: c[1]} })
+
+    // Construct the polygon.
+    var tahoePoly = new google.maps.Polygon({
+        paths: tahoeCoords,
+        strokeColor: 'grey',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: 'grey',
+        fillOpacity: 0.35
+    });
+    tahoePoly.setMap(map);
+    
+    var infoWindow = new google.maps.InfoWindow();
+    google.maps.event.addListener(tahoePoly, 'mouseover', function (e) {
+        infoWindow.setContent("Go to Sierra RASP");
+        var latLng = e.latLng;
+        infoWindow.setPosition(latLng);
+        infoWindow.open(map);
+    });
+    google.maps.event.addListener(tahoePoly, 'mouseout', function (e) {
+        infoWindow.close();
+    });
+
+    google.maps.event.addListener(tahoePoly, "click", function() { window.location = "https://sierra-rasp.nfshost.com" });
+
 	return( map );
 }
 
