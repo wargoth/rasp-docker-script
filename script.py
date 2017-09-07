@@ -20,7 +20,9 @@ class Data:
 
 
 def parse_file(path):
-    ''' Format description:
+    '''
+    Parses forecast data files
+    Format description:
     http://www.drjack.info/twiki/bin/view/RASPop/DataFileDescription
     '''
     with open(path) as f:
@@ -52,6 +54,9 @@ def parse_file(path):
 
 
 def parse_metar(stations, start_time, end_time):
+    '''
+    Fetches and parses METARs between start_time and end_time for the list of stations
+    '''
     url = 'https://aviationweather.gov/adds/dataserver_current/httpparam?' \
           'dataSource=metars&requestType=retrieve&format=xml&stationString=%s' \
           '&startTime=%sZ&endTime=%sZ' % (','.join(stations), start_time.isoformat(), end_time.isoformat())
@@ -81,6 +86,9 @@ def parse_metar(stations, start_time, end_time):
 
 
 def parse_latlon(path):
+    '''
+    Parses latlon2d file
+    '''
     with open(path) as f:
         table = []
         row = []
@@ -96,6 +104,9 @@ def parse_latlon(path):
 
 
 def latlon2ij(point, ll_table):
+    '''
+    Findes i,j correspoinding to specified coordinates
+    '''
     for j in xrange(len(ll_table) - 1):
         for i in xrange(len(ll_table[0]) - 1):
             a = ll_table[j][i]
@@ -117,53 +128,67 @@ def get_latest(metars):
 
 
 def c(f):
+    '''
+    Converts temperature in Fahrenheit to Celcius
+    '''
     return (f - 32) * 5.0 / 9
 
 
+# define start of the period
 start_time = datetime.datetime.utcnow().replace(hour=18, minute=00, second=0, microsecond=0)
-start_time = datetime.datetime.utcnow().replace(hour=18, minute=00, second=0, microsecond=0, day=start_time.day -1)
+# comment out next line if running same julian day (day = z-day)
+start_time = datetime.datetime.utcnow().replace(hour=18, minute=00, second=0, microsecond=0, day=start_time.day - 1 )
+# define end of the period
 end_time = datetime.datetime.utcnow().replace(hour=1, minute=59, second=59, microsecond=0, day=start_time.day + 1 )
 
+# METAR stations within the area
 stations = "KSFO KLVK KCCR KSJC KMRY KWVI KE16 KLSN KCVH 09CA KSNS CA37 KHDW KOAK KSQL KPAO KNUQ KRHV KMOD KSCK O889 KPRB KNLC".split()
 
+# get METAR reports
 metars = parse_metar(stations, start_time, end_time)
+# group METARS by time
 groups = get_latest(metars)
 # metars = sorted(metars, key=lambda k: k['station_id'])
 
 
-option = 0
+# list of available data
 dirs = [
-    ('/tmp/OUT_T2', 'latlon2d2k.d02.dat'),
-    ('/tmp/OUT_T', 'drjack-wrf3-panoche-4k/latlon2d.d02.dat'),
-    ('/tmp/OUT_T6', 'drjack-wrf3-panoche-2k/latlon2d.d02.dat')
+    ('/tmp/OUT_T1', 'drjack-wrf3-panoche-4k/latlon2d.d02.dat'),
+    ('/tmp/OUT_T2', 'drjack-wrf3-panoche-4k/latlon2d.d02.dat')
 ]
+
+
+def norm(deg):
+    '''Returns degrees in [-180,180] range'''
+    if deg < 180:
+        return deg
+    return abs(deg - 360) % 360
+
 
 totals = defaultdict(dict)
 
-
+# first, iterate of hours
 for hour in sorted(groups.keys()):
-    for option in range(3):
+    # second, iterate over available forecasts
+    for option in range(len(dirs)):
         data_dir = dirs[option][0]
 
         metars = groups[hour]
         print "Getting forecast for %s @ %02d00" % (data_dir, hour)
 
+        # parse forecast data files
         wspd = parse_file(data_dir + '/sfcwindspd.curr.%02d00lst.d2.data' % hour)
         wdir = parse_file(data_dir + '/sfcwinddir.curr.%02d00lst.d2.data' % hour)
         dewpt = parse_file(data_dir + '/sfcdewpt.curr.%02d00lst.d2.data' % hour)
         temp = parse_file(data_dir + '/sfctemp.curr.%02d00lst.d2.data' % hour)
 
+        # parse latlon2d file
         table = parse_latlon(dirs[option][1])
-
-
-        def norm(deg):
-            if deg < 180:
-                return deg
-            return abs(deg - 360) % 360
 
         cumul = 0
         spd_err_cumul = 0
         spd_max_err = 0
+        # third, iterate over METARs
         for m in metars:
             i, j = latlon2ij((m['latitude'], m['longitude']), table)
             print "Station: %s" % m['station_id']
@@ -190,6 +215,7 @@ for hour in sorted(groups.keys()):
         print "Average error: %d%%, wspeed error avg: %d, max %d" % (err, spd_err, spd_max_err)
         print "\n\n"
 
+# output totals
 for name, hours in totals.iteritems():
     print "Station %s" % name
     for hour, err in hours.iteritems():
