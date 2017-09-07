@@ -50,8 +50,11 @@ var OPACITY_MAX_PIXELS = 57; // Width of opacity control image
 var opacity_control = "N";
 var opacityCtrlKnob;
 
-var waslong = "N";	// longclick
+var waslong = false;	// longclick
 var wasSounding = false ;
+
+var latLon2d;
+
 
  /***********************
  * initIt()             *
@@ -84,7 +87,7 @@ function initIt()
 
 	var day = document.getElementById("Day");	// save typing
     
-    var NUM_DAYS = 6
+    var NUM_DAYS = 3
 
 	T.setTime(Now);					// Today
 	day.options[0] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()] + " - Today", mkdat(T));
@@ -232,15 +235,15 @@ function initIt()
 
 	map = newMap();
 
-	new LongClick(map, 3000);	// longclick
+	new LongClick(map, 1000);	// longclick
 
 	// map.fitBounds(Bnds);	// This seems to zoom out rather too much!
 
 	setSize();
 
 	// Install handlers for the map
-	google.maps.event.addListener(map, 'rightclick',     function(event) { newclick(event);             });	// R-Click and longpress
-	google.maps.event.addListener(map, 'longpress',      function(event) { newclick(event);             });	// do the same thing
+	google.maps.event.addListener(map, 'rightclick',     function(event) { newclick(event); });	// R-Click and longpress
+	google.maps.event.addListener(map, 'longpress',      function(event) { newclick(event); });	// do the same thing
 // 	google.maps.event.addListener(map, 'click',          function(event) { oneclick(event);             });
 	google.maps.event.addListener(map, 'dragend',        function(event) { constrainMap(event);         });
 	google.maps.event.addListener(map, 'zoom_changed',   function(event) { constrainMap(event);         });
@@ -262,6 +265,33 @@ function initIt()
 
 	doChange(null);
 }
+
+
+function getFile(fpath, onload) {
+    var req = new XMLHttpRequest();
+    req.open("GET", fpath);
+    req.onload = onload;
+    req.send(); // This line fetches the file
+}
+
+function parseLatLon2d (txt) {
+    lines = txt.split('\n');
+    table = []
+    row = []
+    for (var i = 0, j = lines.length; i < j; i++) {
+        var line = lines[i].trim();
+        
+        if (!line) { // row separator
+            table.push(row);
+            row = [];
+            continue;
+        }
+        var v = line.split(/\s+/);
+        row.push({lat: parseFloat(v[0]), lng: parseFloat(v[1])});
+    }
+    return table;
+}
+
 
 /****************************************
  *      END OF INITIALISATION STUFF     *
@@ -375,28 +405,6 @@ function getStatus()
 }
 
 
-/*
- * Need to distinguish Single vs Double Click
- *
- * doclick() is always called: Set timeout
- *
- * If dblclick() fires within timeout, reset timer (default actions follow)
- * Else oneclick() runs
- *
- */
-var	timeoutId;
-
-function doclick()
-{
-	timeoutId = setTimeout(oneclick, 500);
-}
-
-
-function dblclick()
-{
-	clearTimeout(timeoutId);
-}
-
 /********************************/
 /* CallBack for onclick (image) */
 /********************************/
@@ -410,8 +418,8 @@ function oneclick(E)
 		return false;
 	}
 
-	if(waslong == "Y"){ // longclick
-		waslong = "N";
+	if(waslong){ // longclick
+		waslong = false;
 	}
 	else {
 		var i = document.getElementById("Time").selectedIndex;
@@ -449,14 +457,11 @@ function checkParam()
 	badParams[14] = "sounding13";
 	badParams[15] = "sounding14";
 	badParams[16] = "sounding15";
-	// badParams[17] = "topo" ;
-	// badParams[18] = "zblclmask" ;
-	// badParams[19] = "zsfclclmask" ;
+	badParams[18] = "nope1";
 
 	var param =document.getElementById("Param").value;
-	for(i = 0; i < badParams.length; i++) 
-		if( param === badParams[i])
-			return "" ;
+    if (badParams.includes(param))
+        return "";
 
 	/* Identify the Vector Params */
 	if(param === "wstar_bsratio")	return("wstar bsratio");
@@ -471,6 +476,8 @@ function checkParam()
 	if(param === "press500")	return("press500 press500wspd press500wdir");
 	if(param === "wind950")		return("wind950spd wind950dir");
 	if(param === "wind850")		return("wind850spd wind850dir");
+	if(param === "zsfclclmask")		return("zsfclcl");
+	if(param === "zblclmask")		return("zblcl");
 
 	return param ;
 }
@@ -524,25 +531,13 @@ var text;
 // Determine the Map Resolution
 function getResolution()
 {
-	if(archiveMode) {
-		return(2);
-	}
-	else {
-		switch( document.getElementById("Day").options.selectedIndex){
-		case 0:	return( 2);	break;  // Today    - 2Km
-		case 1: 
-		case 2: 
-		case 3:                     // Rest of week - 12Km
-		case 4:
-		case 5:
-		case 6: 
-		case 7: return(4); break;
-		default:
-			alert("getResolution: Unknown Day Index!");
-			return(12);	// What else?
-			break;
-		}
-	}
+    switch(document.getElementById("Day").options.selectedIndex) {
+    case 0:
+    case 1:
+    case 2: 
+    default:
+        return 4;
+    }
 }
 
 /******************/
@@ -728,6 +723,7 @@ function setTimes()
 /*******************************/
 function doChange(E)
 {
+    tooltip.close();
 	if(document.getElementById("Param").value === "nope1" ) {
 		return 0;		// Catch a stupid selection
 	}
@@ -826,7 +822,6 @@ function doUrl() // Set up URL link
 
 function loadImage(dirn)
 {
-	var imgURL;
 	var tIdx   = document.getElementById("Time").selectedIndex;
 	var param  = document.getElementById("Param").value;
 
@@ -841,10 +836,10 @@ function loadImage(dirn)
 
 	// Sort out the img URL
 	if(param == "topo"){
-		imgURL = "";
+		var imgURL = "";
 	}
 	else {
-		imgURL =  Server + getBasedir() + "/FCST/" ;
+		var imgURL =  getBasedir() + "/FCST/" ;
 	}
 
 	// Load image(s) / overlays and next one(s)
@@ -936,7 +931,7 @@ function loadImage(dirn)
 				imgData.firstChild.attachEvent('onclick', function(event) {oneclick(event);});
 			else
 				imgData.firstChild.addEventListener('click', function(event) {oneclick(event);});
-			imgData.firstChild.setAttribute("done");
+			imgData.firstChild.setAttribute("done", true);
 		}
 	}
 	doUrl();	// set up the Page URL
@@ -959,107 +954,236 @@ function doAirspace()
 	}
 }
 
+var Rect = function(ri, rj) {
+    this.ri = ri;
+    this.rj = rj;
+}
+
+Rect.prototype.splittable = function () {
+    return this.ri.divisable() || this.rj.divisable();
+}
+
+Rect.prototype.split = function () {
+    if (this.ri.length() > this.rj.length()) {
+        var split = this.ri.split();
+        return [new Rect(split[0], this.rj), new Rect(split[1], this.rj)];
+    } else {
+        var split = this.rj.split();
+        return [new Rect(this.ri, split[0]), new Rect(this.ri, split[1])];
+    }
+}
+
+Rect.prototype.ij = function () {
+    return [this.ri.a, this.rj.a];
+}
+
+Rect.prototype.path = function (ll_table) {
+    var path = [
+        ll_table[this.rj.a][this.ri.a], 
+        ll_table[this.rj.b][this.ri.a], 
+        ll_table[this.rj.b][this.ri.b], 
+        ll_table[this.rj.a][this.ri.b], 
+    ];
+        /*
+    var j = this.rj.a;
+    for (var i = this.ri.a, to = this.ri.b; i < to; i++) {
+        path.push(ll_table[j][i]);
+    }
+    
+    var i = this.ri.b;
+    for (var j = this.rj.a, to = this.rj.b; j < to; j++) {
+        path.push(ll_table[j][i]);
+    }
+    
+    var j = this.rj.b;
+    for (var i = this.ri.b, to = this.ri.a; i > to; i--) {
+        path.push(ll_table[j][i]);
+    }
+    
+    var i = this.ri.a;
+    for (var j = this.rj.b, to = this.rj.a; j > to; j--) {
+        path.push(ll_table[j][i]);
+    }*/
+
+    return path.map(function (p) { return {lat: p[0], lng: p[1] }});
+}
+
+
+var Range = function(a, b) {
+    if (a >= b) {
+        alert ("problem");
+    }
+    this.a = a;
+    this.b = b;
+}
+
+Range.prototype.divisable = function () {
+    return (this.a + 1) < this.b
+}
+
+Range.prototype.length = function () {
+    return this.b - this.a;
+}
+
+Range.prototype.split = function () {
+    var one = new Range(this.a, this.a + Math.floor(this.length() / 2));
+    var two = new Range(this.a + Math.floor(this.length() / 2), this.b);
+    return [one, two];
+}
+
+function _latlon2ij(latLng, rect, ll_table) {
+    if (!rect.splittable()) {
+        return rect.ij();
+    }
+    
+    var split = rect.split()
+    
+    for (var i = 0; i < 2; i++) {
+        var test = split[i];
+        
+        var path = test.path(ll_table);
+                
+        var poly = new google.maps.Polygon({paths: path});
+
+        if (google.maps.geometry.poly.containsLocation(latLng, poly)) {
+            return _latlon2ij(latLng, test, ll_table);
+        }
+    }
+}
+
+// Finds i,j correspoinding to specified coordinates
+function latlon2ij(latLng, ll_table) {
+    iRange = new Range(0, ll_table[0].length - 1);
+    jRange = new Range(0, ll_table.length - 1);
+    var rect = new Rect(iRange, jRange);
+    
+    return _latlon2ij(latLng, rect, ll_table);
+}
+
+if (!String.prototype.format) {
+  String.prototype.format = function() {
+    var args = arguments;
+    return this.replace(/{(\d+)}/g, function(match, number) { 
+      return typeof args[number] != 'undefined'
+        ? args[number]
+        : match
+      ;
+    });
+  };
+}
+
+function get_single_value(name, line) {
+    rx = new RegExp(name + '= ([^\\s]+)');
+    var v = rx.exec(line);
+    return v[1];
+}
+
+var dataCache = {};
+
+function parseData(fname, txt) {
+    var lines = txt.split('\n');
+
+    var data = {};
+    var header = data.header = {};
+    var init = false;
+    // The first data row is for the grid row having the smallest y index, i.e. the most "southerly" row, 
+    // with subsequent rows being for increasing y index values. The actual value at each grid point is the 
+    // printed data value divided by the given multiplication factor.
+    var table = data.table = [];
+    for(var i = 0, maxi = lines.length - 1; i < maxi ; i ++) {
+        var line = lines[i].trim();
+        if (line == '---') continue;
+        if (!init) { // ignore header line
+            init = true;
+            continue;
+        }
+        if (line.startsWith('Model'))   // Model line
+            continue;
+        if (line.startsWith('Day')) { // date, etc line
+            // Day= 2017 8 22 TUE ValidLST= 1400 CES ValidZ= 1200 Fcst= 24.0 Init= 12 Param= sfcwind Direction Unit= m/sec Mult= 1 Min= 170 Max= 190
+            header['Mult'] = parseInt(get_single_value('Mult', line));
+            header['Unit'] = get_single_value('Unit', line);
+            continue;
+        }
+
+        table.push(line.split(' ').map(function(v) { return parseInt(v) * header['Mult'] }));
+    }
+    
+    return data;
+
+}
+
+function getUnit(unit) {
+    switch (unit) {
+        case '~K~Truncated':
+            return '';
+        case 'W/m~S~2~N~':
+            return 'W/m<sup>2</sup>'
+        default:
+            return unit;
+    }
+}
+
+var tooltip = new google.maps.InfoWindow({
+    content: ""
+});
+
+function showTooltip(data, ij, latLng) {
+    tooltip.close();
+    tooltip.setContent(data.table[ij[1]][ij[0]] + " " + getUnit(data.header.Unit));
+    tooltip.setPosition(latLng)
+    tooltip.open(map);
+}
 
 function newclick(E)
 {
-	return;
 	var tail;
 	var parameter;
-	var str;
-	var lat;
-	var lon;
-
-	clearTimeout(timeoutId);
 
 	if( !corners.Bounds[resolution].contains(E.latLng)){ // Outside forecast area!
 		return;
 	}
 
-	str = E.latLng.toUrlValue();
-	lat = str.split(',')[0];
-	lon = str.split(',')[1];
+    if (!latLon2d) {
+        getFile('latlon2d.json', function () {
+            if(this.status != 200) {
+                console.warn('latlon2d.json cannot be found')
+                return;
+            }
+            latLon2d = eval(this.response);
+            newclick(E);
+        });
+        return;
+    }
+	
+    var tIdx   = document.getElementById("Time").selectedIndex;
+	var param  = checkParam();
+    if (!param) {
+        return;
+    }
+    var imgURL =  getBasedir() + "/FCST/" ;
+    
+    if (param.includes(' ')) {
+        param = param.split(' ')[0]
+    }
 
-	parameter = checkParam();
-	if(parameter === "") {
-		addInfo(E.latLng, "<pre>Values for " + document.getElementById("Param").value + "\n are not available</pre>");
-		return;
-	}
-	// Get type of Popup from Radio Button Selector
-	var el = document.getElementById("popup").info;
-	for(i = 0; i < el.length; i++){
-		if(el[i].checked)
-			infoPopup = el[i].value;
-	}
+    t = document.getElementById("Time").options[tIdx].value;
+    ximgURL = imgURL + "{0}.curr.{1}lst.d2.data".format(param, t);
+    
+    ij = latlon2ij(E.latLng, latLon2d);
+        if (!ij) return;
 
-	switch(infoPopup){
-	case "XBL":
-			if(document.getElementById("Param").value.slice(0,5) != "press"){
-				addInfo(E.latLng, "<pre>Only implemented for Wave Parameters!<br>See Full Parameter Set</pre>");
-				return;
-			}
+    if (ximgURL in dataCache) {
+        showTooltip(dataCache[ximgURL], ij, E.latLng);
+    } else {
+        getFile(ximgURL, function () {
+            if (this.status != 200) return;
 
-			wrffile = getRegion();
-			blipSpotUrl = Server + "cgi-bin/get_rasp_xbl.cgi";
-			tail = "region=" + wrffile
-			                 + "&grid="   + "d2"
-			                 + "&day=" 
-			                 + "&lat="    + lat
-			                 + "&lon="    + lon
-			                 + "&time="   + document.getElementById("Time").value
-			                 + "&param="  + document.getElementById("Param").value
-			;
-			addInfo(E.latLng, "<pre>See PopUp Window<br>Stipple => Cloud<br>&Delta; indicates posn</pre>");
-			// alert("diff = " + diff + "\ntail = " + tail);
-			paramWindow = window.open(blipSpotUrl + "?" + tail, 'XBL', 'height=850,width=850');
-			return;
-	case "SkewT":
-			wrffile = getRegion();
-			blipSpotUrl = Server + "cgi-bin/get_rasp_skewt.cgi";
-			tail = "region=" + wrffile
-			                 + "&grid="   + "d2"
-			                 + "&day="
-			                 + "&lat="    + lat
-			                 + "&lon="    + lon
-			                 + "&time="   +  document.getElementById("Time").value
-			;
-			addInfo(E.latLng, "<pre>See PopUp Window</pre>");
-			// alert("diff = " + diff + "\ntail = " + tail);
-			paramWindow = window.open(blipSpotUrl + "?" + tail, 'SkewT', 'height=850,width=850');
-			return;
-	case "Value":
-			blipSpotUrl = Server + "cgi-bin/get_rasp_blipspot.cgi";
-			str = getBasedir().replace("\+", "%2b"); // %2b == '+'
-
-			tail = "region=" + str
-			     + "&grid="   + "d2"
-			     + "&day="
-			     + "&linfo=1"
-			     + "&lat="        + lat
-			     + "&lon="        + lon
-			     + "&time="       + document.getElementById("Time").value + "lst"
-			     + "&param="      + parameter ;
-			     ;
-			// alert("URL = " + blipSpotUrl + "\n\ntail = " + tail);
-			doCallback(blipSpotUrl, tail, E);
-
-			break;
-	case "Day":
-			blipSpotUrl = Server + "cgi-bin/get_rasp_blipspot.cgi";
-			str = getBasedir().replace("\+", "%2b"); // %2b == '+'
-
-			tail = "region=" + str
-			     + "&grid="   + "d2"
-			     + "&day="
-			     + "&linfo=1"
-			     + "&lat="        + lat
-			     + "&lon="        + lon
-			     + "&param=" + parameter ;
-			     ;
-			// alert("URL = " + blipSpotUrl + "\n\ntail = " + tail);
-			doCallback(blipSpotUrl, tail, E);
-
-			break;
-	}
+            data = parseData(ximgURL, this.response);
+            dataCache[ximgURL] = data;
+            showTooltip(data, ij, E.latLng);
+        });
+    }
 }
 
 
@@ -1209,24 +1333,36 @@ function changeParamset(newParams)
 	}
 }
 
+
 function LongClick(map, length) {
+    this.tId;
     this.length_ = length;
     var me = this;
-    me.map_ = map;
-    google.maps.event.addListener(map, 'mousedown', function(e) { me.onMouseDown_(e) });
-    google.maps.event.addListener(map, 'mouseup',   function(e) { me.onMouseUp_(e)   });
+    google.maps.event.addListener(map, 'mousedown', function(e) { return me.onMouseDown_(e); });
+    document.addEventListener("mouseup", function(e) { return me.onMouseUp_(e); });
+    google.maps.event.addListener(map, 'dragstart', function(event) {
+        clearTimeout(me.tId);
+    });
+    google.maps.event.addListener(map, 'bounds_changed', function(event) {
+        clearTimeout(me.tId);
+    });
+
 }
 
 LongClick.prototype.onMouseUp_ = function(e) {
-    var now = new Date;
-    if (now - this.down_ > this.length_) {
-      google.maps.event.trigger(this.map_, 'longpress', e);
-      waslong = "Y";
+    var now = new Date();
+
+    if (now - this.down_ < this.length_) {
+        clearTimeout(this.tId);
     }
 }
 
-LongClick.prototype.onMouseDown_ = function() {
-    this.down_ = new Date;
+LongClick.prototype.onMouseDown_ = function(e) {
+    this.down_ = new Date();
+    this.tId = setTimeout(function () {
+        waslong = true;
+        google.maps.event.trigger(map, 'longpress', e);
+    }, 1000);
 }
 
 /**** Subclass Google Maps OverlayView() to add Opacity ****/
