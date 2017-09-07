@@ -1,4 +1,4 @@
-FROM fedora:latest
+FROM fedora:25
 
 ENV BASEDIR=/root/DRJACK/
 
