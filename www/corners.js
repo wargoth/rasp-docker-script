@@ -14,8 +14,8 @@ corners["Centre"]
 corners.Bounds = new Array();
 corners.Centre = new Array();
 
-corners.Bounds[4] = new google.maps.LatLngBounds(
-    new google.maps.LatLng(34.3320389, -124.5985718), // SW
-    new google.maps.LatLng(40.9218674, -118.8122559)  // NE
-);
-corners.Centre[4] = new google.maps.LatLng(37.6269531, -121.7054138);
+    corners.Bounds[4] = new google.maps.LatLngBounds(
+        new google.maps.LatLng(34.0473289, -124.8150177), // SW
+        new google.maps.LatLng(41.2036285, -118.6347809)  // NE
+    );
+    corners.Centre[4] = new google.maps.LatLng(37.6254807, -121.7248993);

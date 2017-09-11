@@ -75,7 +75,7 @@
   $BOUNDARY_UPDATE_PERIODHRS{'PANOCHE'}[0] = 3;        # used only by initialization programs
   $NDOWN_BOUNDARY_UPDATE_PERIODHRS{'PANOCHE'}[0] = 0 ; # should always be 0 for non-windowed case
   ### SET BLIPMAP IMAGE SIZES  - 1st,2nd value for 1st,2nd domain - blank=NOplot
-  @{$PLOT_IMAGE_SIZE{'PANOCHE'}[0]} = ( '', '1200x1200' );
+  @{$PLOT_IMAGE_SIZE{'PANOCHE'}[0]} = ( '', '1600x1600' );
   ### SET HISTORY HOUR FOR IMAGES PLOTTED WHEN $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
   #12hr_run:
   @{$PLOT_HHMMLIST{'PANOCHE'}[0]} =  ('1800', '1900', '2000', '2100', '2200', '2300', '0000', '0100' );
