@@ -1,0 +1,23 @@
+# /bin/sh format
+# Read by $BASEDIR/bin/runGM
+
+ulimit -s unlimited
+export KMP_STACKSIZE=1000000000
+
+# Special Flag for PaulS "curr." even when REGIONXYZ+N
+export CURR_ONLY=1
+
+export LD_LIBRARY_PATH+=/lib64:$BASEDIR/lib
+
+export TZ=/usr/share/zoneinfo/Europe/Warsaw
+
+# Set ENV variables for NCL
+# Needed if running from crontab
+if [ -f /etc/profile.d/ncarg.sh ]
+then
+      .	/etc/profile.d/ncarg.sh 
+fi
+
+export NCARG_RANGS=$BASEDIR/lib/rangs
+export NCL_DEF_LIB_DIR=$BASEDIR/GM/LIB
+export NCARG_COLORMAPS=$NCARG_NCARG/colormaps:$BASEDIR/GM
