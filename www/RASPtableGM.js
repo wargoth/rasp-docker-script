@@ -21,8 +21,6 @@ var theSideScales = [];
 
 var ffversion;
 
-var fullSet;
-
 var oldParam;
 var times;
 
@@ -41,7 +39,6 @@ var imgWid;
 var topHeight;
 
 var map;
-var resolution;
 var opacity = 50;	// default opacity
 var centre;
 var zoom = 8;		// default zoom
@@ -53,7 +50,7 @@ var opacityCtrlKnob;
 var waslong = false;	// longclick
 var wasSounding = false ;
 
-var latLon2d;
+var latLon2d = [];
 
 
  /***********************
@@ -79,21 +76,10 @@ function initIt()
 	/* Build the Day Menu */
 	/**********************/
 
-	var Now = new Date().getTime();	// Time now - in milliSec(!)
-	var mS_Day = 24 * 60 * 60 * 1000;	// mS in a day
-	var T = new Date();			// Instantiate a Date object
-	var dayName   = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-	var monthName = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
 	var day = document.getElementById("Day");	// save typing
     
-    var NUM_DAYS = 3
-
-	T.setTime(Now);					// Today
-	day.options[0] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()] + " - Today", mkdat(T));
-    for (i = 1; i < NUM_DAYS; i++) {
-        T.setTime(Now + mS_Day * i);
-        day.options[i] = new Option(dayName[T.getDay()] + ' ' + T.getDate() + ' ' + monthName[T.getMonth()], mkdat(T));
+    for (var i = 0; i < forecasts.length; i++) {
+        day.options[i] = new Option(forecasts[i].name);
     }
 
 
@@ -102,45 +88,33 @@ function initIt()
 	/***********************/
 
 	// Set Short Param List
-	fullSet = false;
-	for(var i = 0; i < paramListLite.length; i++) {
-		document.getElementById("Param").options[i] = new Option(paramListLite[i][2], paramListLite[i][1]);
-		document.getElementById("Param").options[i].className = paramListLite[i][0];
+	for(var i = 0; i < paramListFull.length; i++) {
+        if (paramListFull[i][1] == 'nope1') {
+            var optG = document.createElement("optgroup");
+            optG.label = paramListFull[i][2];
+            document.getElementById("Param").appendChild(optG);
+        } else {
+            var opt = document.createElement("option");
+            var txt = document.createTextNode(paramListFull[i][2]);
+            opt.appendChild(txt);
+            opt.setAttribute('value', paramListFull[i][1])
+            opt.setAttribute('class', paramListFull[i][0])
+            document.getElementById("Param").appendChild(opt)
+        }
 	}
 
 	// Install Handlers
 	document.getElementById("Param").onchange        = doChange;
 	document.getElementById("Day").onchange          = doChange;
 	document.getElementById("Time").onchange         = doChange;
-	document.getElementById("paramSet").onmousedown  = switchParamList;
 
 
-	/* Install Time options and adjust Table times for DST
-		 Assume that Standard Time is in force on Jan 1 2012
-		 And Daylight Saving Time in the summer"
-		 May be incorrect in southern hemisphere
-		 See also setTimes()
-	 */
-	dateNow = new Date();
-	dateJan = new Date(2012, 0, 1)
-	if(dateNow.getTimezoneOffset() == dateJan.getTimezoneOffset())
-		times = tzArray["STD"];
-	else
-		times = tzArray["DST"];
-
-	for(var i = 0; i < times.length; i++) {
-		document.getElementById("Time").options[i] = new Option(times[i], times[i]);
-		if(times[i] == '1400')
-			document.getElementById("Time").options[i].selected = true;
-	}
 
 	document.getElementById("Day").options[0].selected    = true;				// Today
-	document.getElementById("Param").options[2].selected  = true;				// hcrit
-	document.getElementById("desc").innerHTML             = paramListLite[document.getElementById("Param").selectedIndex][3] ;
+	document.getElementById("Param").options[3].selected  = true;				// hcrit
+	document.getElementById("desc").innerHTML             = paramListFull[document.getElementById("Param").selectedIndex][3] ;
 
-	/* Sort out Archive years for 1 year */
-	T.setTime(Now - 366 * mS_Day);
-
+    setTimes();
 
 	for(i = 0; i < document.getElementById("Time").options.length; i++){
 		theScales[i]     = new Image();
@@ -150,8 +124,8 @@ function initIt()
 		Loaded[i]        = false;
 	}
 
-	resolution = getResolution();
-	centre = corners.Centre[resolution];
+	var fid = document.getElementById("Day").options.selectedIndex;
+	centre = forecasts[fid].centre;
 
 	// Save the original Selector Table Height
 	origTblHt = document.getElementById("selectors").offsetHeight;
@@ -172,15 +146,11 @@ function initIt()
 					}
 				}
 				if(j == document.getElementById("Param").options.length){
-					switchParamList();
 					for(j = 0; j < document.getElementById("Param").options.length; j++){
 						if(document.getElementById("Param").options[j].value == prams[1]){
 							document.getElementById("Param").options[j].selected = true;
 							break;
 						}
-					}
-					if(j == document.getElementById("Param").options.length){
-						switchParamList();	// Put back if not found
 					}
 				}
 			}
@@ -211,10 +181,6 @@ function initIt()
 					dateNow.setDate(dateNow.getDate());
 					if(newDate > dateNow)
 						alert("No forecast for " + newDate.toDateString() + " - Too far ahead!");
-					archiveMode = false;
-				}
-				else{
-					archiveMode = true;
 				}
 			}
 			if(prams[0] == "opacity"){
@@ -330,9 +296,10 @@ function constrainMap(E)
 	document.getElementById("Url").innerHTML = URL;
 
 	// Check that overlay corners are within ViewPort
-        if( !VPbounds.intersects(corners.Bounds[resolution])){
+    var fid = document.getElementById("Day").options.selectedIndex
+    if( !VPbounds.intersects(forecasts[fid].bounds)){
 		if(confirm("Map Outside ViewPort\nReCentre?")){
-			map.setCenter(corners.Centre[resolution]);
+			map.setCenter(forecasts[fid].centre);
 			centre = map.getCenter();
 		}
 	}
@@ -341,16 +308,21 @@ function constrainMap(E)
 
 function newMap()
 {
-	var mapOptions = {
+    var fid = document.getElementById("Day").options.selectedIndex
+    var mapOptions = {
 		zoom:               zoom,
-		center:             corners.Centre[resolution],
+		center:             forecasts[fid].centre,
 		mapTypeId:          google.maps.MapTypeId.TERRAIN,
 		scrollwheel:	    false,
 		draggableCursor:    "crosshair",
 		streetViewControl:  false,
 		// overviewMapControl:  true,
 		minZoom:            6,
-		maxZoom:            12
+		maxZoom:            12,
+        mapTypeControlOptions: {
+            position: google.maps.ControlPosition.BOTTOM_RIGHT
+        },
+
 	};
 
 	map = new google.maps.Map(document.getElementById("zoomBox"), mapOptions);
@@ -395,7 +367,7 @@ function addSoundingLink(marker, n)
 		function(){
 			ctrFlag = true;
 			centre = map.getCenter();
-			var sndURL = '<img src="' + Server + getBasedir() + '/';
+			var sndURL = '<img src="' + getBasedir() + '/';
 			sndURL += 'FCST/sounding' + n + '.curr.'
 					+ document.getElementById("Time").value 
 					+ 'lst.d2.png" height=800 width=800>' ;
@@ -424,13 +396,6 @@ function popup(mylink, windowname, wid, ht)
 	return false;
 }
 
-
-// Get the run status from the Modeller, via a cgi-bin script
-function getStatus()
-{
-	url = Server + "cgi-bin/statusChk.cgi";
-	popup( url, 'Status Report', 650, 450);
-}
 
 
 /********************************/
@@ -556,18 +521,6 @@ function doCallback(url, data, Event)
 
 var text;
 
-// Determine the Map Resolution
-function getResolution()
-{
-    switch(document.getElementById("Day").options.selectedIndex) {
-    case 0:
-    case 1:
-    case 2: 
-    default:
-        return 4;
-    }
-}
-
 /******************/
 /* Set Image Size */
 /******************/
@@ -622,8 +575,6 @@ function setSize()
 	/* This messing allows variable size title in the centre */
 	topWidth  =  imgWid - sideWidth;
 	topHeight = topWidth * 0.08;		// Ht of Title: Ratio of img ht / wid
-	topHeight *= TitleScale;
-	topWidth  *= TitleScale;
 
 	titleD = document.getElementById("topDiv");
 	titleD.style.overflow = "hidden";
@@ -688,27 +639,6 @@ function setSize()
 }
 
 
-/********************/
-/* Check if Archive */
-/* 0 => normal      */
-/* 1 => archive     */
-/********************/
-var archiveMode = false;
-var oldArchive = false;
-var oldArchiveDay;
-var oldArchiveMonth;
-var oldArchiveYear;
-
-function isArchive()
-{
-	archiveMode = false;
-}
-
-
-function resetArchive()
-{
-}
-
 /* 
  * Set the times in the table for STD or DST
  *
@@ -718,18 +648,9 @@ function setTimes()
 	var dateJan = new Date(2012, 0, 1);
 	var dateNow = new Date();
 
-		var mS_Day = 24 * 60 * 60 * 1000;	// mS in a day
-
-	switch( document.getElementById("Day").selectedIndex ){
-	case 0:                                                     break;     // Today   - 2km
-	case 1:                                                     break;     // Today   - 12km
-	case 2: dateNow = new Date(dateNow.valueOf() +     mS_Day); break;     // Today+1 - 4km
-	case 3: dateNow = new Date(dateNow.valueOf() + 2 * mS_Day); break;     // Today+2 - 4km
-	case 4: dateNow = new Date(dateNow.valueOf() + 3 * mS_Day); break;     // Today+3 - 4km
-	case 5: dateNow = new Date(dateNow.valueOf() + 4 * mS_Day); break;     // Today+4 - 4km
-	case 6: dateNow = new Date(dateNow.valueOf() + 5 * mS_Day); break;     // Today+5 - 4km
-	case 7: dateNow = new Date(dateNow.valueOf() + 6 * mS_Day); break;     // Today+6 - 4km
-	}
+    var fid = document.getElementById("Day").selectedIndex;
+    
+    dateNow.setTime(forecasts[fid].date)
 
 	if(dateNow.getTimezoneOffset() == dateJan.getTimezoneOffset())
 		times = tzArray["STD"];
@@ -741,7 +662,7 @@ function setTimes()
 
 	for(var i = 0; i < times.length; i++) {
 		document.getElementById("Time").options[i] = new Option(times[i], times[i]);
-		if(Tindex == i)
+		if(Tindex == i || (Tindex == -1 && times[i] == forecasts[fid].default_t))
 			document.getElementById("Time").options[i].selected = true;
 	}
 }
@@ -757,17 +678,7 @@ function doChange(E)
 	}
 
 	/*  Descriptions */
-	if(fullSet){
-		(document.getElementById("desc")).innerHTML = paramListFull[document.getElementById("Param").selectedIndex][3] ;
-	}
-	else {
-		(document.getElementById("desc")).innerHTML = paramListLite[document.getElementById("Param").selectedIndex][3] ;
-	}
-
-	if (oldArchive == true && archiveMode == false){ // Change to Normal mode
-		document.getElementById("Day").disabled = false;
-		document.getElementById("Day").options[oldDayIndex].selected = true;
-	}
+    (document.getElementById("desc")).innerHTML = paramListFull[document.getElementById("Param").selectedIndex][3] ;
 
 	/* Clear saved images
 	 * if changing to / from archiveMode,
@@ -775,7 +686,6 @@ function doChange(E)
 	 */
 	if(      (oldParam    !== document.getElementById("Param").value)
 	      || (oldDayIndex !== document.getElementById("Day").selectedIndex)
-	      || (oldArchive  !== archiveMode)
 	  ){
 		for(i = 0; i < document.getElementById("Time").options.length; i++){
 			Loaded[i] = false;
@@ -787,35 +697,17 @@ function doChange(E)
 		setTimes();
 	}
 
-	// Change the resolution if Day changes	
-	if(oldDayIndex !== document.getElementById("Day").selectedIndex){
-		resolution = getResolution();
-	}
 
 	/* Save current values, so can detect change */
 	oldParam        = document.getElementById("Param").value;
 	oldDayIndex     = document.getElementById("Day").selectedIndex;
-	oldArchive      = archiveMode;
 
 	loadImage(1); // forwards
 }
 
 function getBasedir()
 {
-	var basedir;
-
-	switch(document.getElementById("Day").selectedIndex){
-		case 0: basedir = "OUT"; break;
-		case 1: basedir = "OUT+1"; break;
-		case 2: basedir = "OUT+2"; break; // Both 4Km runs go into the same directory 
-		case 3: basedir = "OUT+3"; break;
-		case 4: basedir = "OUT+4"; break;
-		case 5: basedir = "OUT+5"; break;
-		case 6: basedir = "OUT+6"; break;
-		case 7: basedir = "OUT+7"; break;
-		default: alert("getBasedir: Bad day selector: " + document.getElementById("Day").selectedIndex); break;
-	}
-	return(basedir);
+    return forecasts[document.getElementById("Day").selectedIndex].dir
 }
 
 function doUrl() // Set up URL link
@@ -875,12 +767,7 @@ function loadImage(dirn)
 		if(!Loaded[x]){
 			t = document.getElementById("Time").options[x].value;
 			ximgURL = imgURL + param;
-			if(param == "topo"){
-				ximgURL += resolution;
-			}
-			else{
-				ximgURL += ".curr." + t + "lst.d2" ;
-			}
+            ximgURL += ".curr." + t + "lst.d2" ;
 			if(param.startsWith("sounding") || param.startsWith("boxwmax")){
 				isSounding = true;
 				siz = (Format == "Landscape" ? imgHt : imgWid);
@@ -892,7 +779,8 @@ function loadImage(dirn)
 				theTitles[x].src     = ximgURL + ".head.png";
 				theSideScales[x].src = ximgURL + ".side.png";
 				theScales[x].src     = ximgURL + ".foot.png";
-				Overlays[x]          = new RASPoverlay(corners.Bounds[resolution], ximgURL + ".body.png", map);
+                var fid = document.getElementById("Day").options.selectedIndex
+				Overlays[x]          = new RASPoverlay(forecasts[fid].bounds, ximgURL + ".body.png", map);
 				Overlays[x].setMap(map);
 			}
 			Loaded[x] = true;
@@ -1167,18 +1055,22 @@ function newclick(E)
 {
 	var tail;
 	var parameter;
+    
+    var fid = document.getElementById("Day").options.selectedIndex
 
-	if( !corners.Bounds[resolution].contains(E.latLng)){ // Outside forecast area!
+	if( !forecasts[fid].bounds.contains(E.latLng)){ // Outside forecast area!
 		return;
 	}
+	
+	var latlon_file = forecasts[fid].latlon_file;
 
-    if (!latLon2d) {
-        getFile('latlon2d.json', function () {
+    if (!latLon2d[latlon_file]) {
+        getFile(forecasts[fid].latlon_file, function () {
             if(this.status != 200) {
-                console.warn('latlon2d.json cannot be found')
+                console.warn(latlon_file + ' cannot be found')
                 return;
             }
-            latLon2d = eval(this.response);
+            latLon2d[latlon_file] = eval(this.response);
             newclick(E);
         });
         return;
@@ -1198,8 +1090,8 @@ function newclick(E)
     t = document.getElementById("Time").options[tIdx].value;
     ximgURL = imgURL + "{0}.curr.{1}lst.d2.data".format(param, t);
     
-    ij = latlon2ij(E.latLng, latLon2d);
-        if (!ij) return;
+    ij = latlon2ij(E.latLng, latLon2d[latlon_file]);
+        if (!ij) { return };
 
     if (ximgURL in dataCache) {
         showTooltip(dataCache[ximgURL], ij, E.latLng);
@@ -1212,23 +1104,6 @@ function newclick(E)
             showTooltip(data, ij, E.latLng);
         });
     }
-}
-
-
-function getRegion()
-{
-	switch(document.getElementById("Day").selectedIndex){
-		case 0: regn = "OUT%2b0"; break;
-		case 1: regn = "OUT%2b1";   break;
-		case 2: regn = "OUT%2b2"; break; // Both +1 runs go into the same directory 
-		case 3: regn = "OUT%2b3"; break;
-		case 4: regn = "OUT%2b4"; break;
-		case 5: regn = "OUT%2b5"; break;
-		case 6: regn = "OUT%2b6"; break;
-		case 7: regn = "OUT%2b7"; break;
-		default: alert("Bad day selector: " + document.getElementById("Day").selectedIndex); break;
-	}
-	return(regn);
 }
 
 
@@ -1320,46 +1195,6 @@ function writePopup(text)
 }
 */
 
-
-function switchParamList(E)
-{
-	if(fullSet){
-		changeParamset(paramListLite);
-		document.getElementById("paramSet").innerHTML = "Press for Full Parameter set";
-	}
-	else{
-		changeParamset(paramListFull);
-		document.getElementById("paramSet").innerHTML = "Press for Reduced Parameter set";
-	}
-}
-		
-
-function changeParamset(newParams)
-{
-	for(var i = 0; i < newParams.length; i++) {
-		document.getElementById("Param").options[i] = new Option(newParams[i][2], newParams[i][1]);
-		document.getElementById("Param").options[i].className = newParams[i][0];
-	}
-	if(document.getElementById("Param").options.length > newParams.length){
-		for(i = newParams.length; i < document.getElementById("Param").length; i++){
-			document.getElementById("Param").options[i] = null;
-		}
-	}
-	document.getElementById("Param").options.length = newParams.length;
-	fullSet = ((fullSet == true) ? false : true);
-
-	// The parameter punter had selected is available as oldParam !!
-	for(var i = 0; i < document.getElementById("Param").options.length; i++){
-		if(document.getElementById("Param").options[i].value == oldParam)
-			break;
-	}
-	if(i == document.getElementById("Param").options.length){
-		document.getElementById("Param").options[1].selected = true;	// Not available
-	}
-	else{
-		document.getElementById("Param").options[i].selected =true;
-	}
-}
 
 
 function LongClick(map, length) {
