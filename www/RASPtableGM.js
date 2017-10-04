@@ -339,7 +339,7 @@ function addSoundingLink(marker, n)
 			ctrFlag = true;
 			centre = map.getCenter();
 			var sndURL = '<img src="' + getBasedir() + '/';
-			sndURL += 'FCST/sounding' + n + '.curr.'
+			sndURL += 'sounding' + n + '.curr.'
 					+ document.getElementById("Time").value 
 					+ 'lst.d2.png" height=800 width=800>' ;
 					// + 'lst.d2.png" height=400 width=400>' ;
@@ -730,7 +730,7 @@ function loadImage(dirn)
 		var imgURL = "";
 	}
 	else {
-		var imgURL =  getBasedir() + "/FCST/" ;
+		var imgURL =  getBasedir() ;
 	}
 
 	// Load image(s) / overlays and next one(s)
@@ -1052,7 +1052,7 @@ function newclick(E)
     if (!param) {
         return;
     }
-    var imgURL =  getBasedir() + "/FCST/" ;
+    var imgURL =  getBasedir() ;
     
     if (param.includes(' ')) {
         param = param.split(' ')[0]
