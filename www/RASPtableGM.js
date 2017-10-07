@@ -63,6 +63,18 @@ function initIt()
 {
 	document.body.style.overflow = "hidden"; // Disable Scrolling
 	window.onresize = function(){setSize();}
+	
+	document.getElementById("hide_controls").onclick = function () {
+        var hidable = document.getElementById("hidable");
+        var button = document.getElementById("hide_controls");
+        if (hidable.style.display == 'none') {
+            hidable.style.display = 'block';
+            button.value = 'Hide controls';
+        } else {
+            hidable.style.display = 'none';
+            button.value = 'Show controls';
+        }
+    }
 
 	oldDayIndex = document.getElementById("Day").options.selectedIndex;
 	oldParam = document.getElementById("Param").options.value;
@@ -1026,6 +1038,8 @@ function newclick(E)
 {
 	var tail;
 	var parameter;
+    
+    console.log(E.latLng.lat(), E.latLng.lng())
     
     var fid = document.getElementById("Day").options.selectedIndex
 
