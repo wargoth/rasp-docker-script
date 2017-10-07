@@ -37,7 +37,7 @@
   # push @{$PARAMETER_DOLIST{'DIABLO'}}, ( 'sounding1','sounding2','sounding3','sounding4','sounding5','sounding6','sounding7');  
   
   # fixed cross-secitons
-  push @{$PARAMETER_DOLIST{'DIABLO'}}, ( 'xbl_-121.92_37.88_windk_14' );
+  push @{$PARAMETER_DOLIST{'DIABLO'}}, ( 'xbl_-121.915_37.881_windk_14',  'xbl_-121.781_37.821_windk_14' );
 
 ######  SET GRID LOCAL TIME
   $LOCALTIME_ID{'DIABLO'} = substr `date +%Z`,0,3; ;
