@@ -64,6 +64,18 @@ function initIt()
 	document.body.style.overflow = "hidden"; // Disable Scrolling
 	window.onresize = function(){setSize();}
 
+    document.getElementById("hide_controls").onclick = function () {
+        var hidable = document.getElementById("hidable");
+        var button = document.getElementById("hide_controls");
+        if (hidable.style.display == 'none') {
+            hidable.style.display = 'block';
+            button.value = 'Hide controls';
+        } else {
+            hidable.style.display = 'none';
+            button.value = 'Show controls';
+        }
+    }
+
 	oldDayIndex = document.getElementById("Day").options.selectedIndex;
 	oldParam = document.getElementById("Param").options.value;
 
@@ -111,7 +123,7 @@ function initIt()
 
 
 	document.getElementById("Day").options[0].selected    = true;				// Today
-	document.getElementById("Param").options[30].selected  = true;				// hcrit
+	document.getElementById("Param").options[29].selected  = true;				// hcrit
 	document.getElementById("desc").innerHTML             = paramListFull[document.getElementById("Param").selectedIndex][3] ;
 
     setTimes();
@@ -426,6 +438,9 @@ function checkParam()
 	var param =document.getElementById("Param").value;
     if (badParams.includes(param))
         return "";
+    
+    if (param.startsWith('xbl_'))
+        return '';
 
 	/* Identify the Vector Params */
 	if(param === "wstar_bsratio")	return("wstar bsratio");
@@ -739,7 +754,7 @@ function loadImage(dirn)
 			t = document.getElementById("Time").options[x].value;
 			ximgURL = imgURL + param;
             ximgURL += ".curr." + t + "lst.d2" ;
-			if(param.startsWith("sounding") || param.startsWith("boxwmax")){
+			if(param.startsWith("sounding") || param == "boxwmax" || param.startsWith("xbl_")){
 				isSounding = true;
 				siz = (Format == "Landscape" ? imgHt : imgWid);
 				Pics[x] = new Image(siz, siz);

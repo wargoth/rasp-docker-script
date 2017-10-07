@@ -104,21 +104,7 @@ var paramList = 	[
 
 /* 42 */ ["",		 "boxwmax", 			"Vert.Velocity Slice at Vert.Vel.Max", "A vertical slice depicting vertical velocity (colors) and potential temperature (lines), intended to help analyze occurrences of strong upward motion.  The slice is taken through the location of the maximum vertical velocity found at a height of approximately 5000 ft AGL over a domain which excludes the outer edge of the domain (the value of that maximum and its location is given in a subtitle of the plot).  The slice parallells the wind direction at that height and is depicted by a white dashed line on the [Vertical Velocity at 1000/950/850/700/500mb] paramter plots (with left-right on the slice always being left-right on the plan view).  Mt. wave predictions are best made using resultions no larger than 4km, since a coarser grid generally does not resolve the waves accurately.  Mountain waves tend to occur above the surface and tilt upwind with height, whereas BL convergences are surface-based and vertically oriented.  These parameters are obtained directly from WRF model output and not from a BLIPMAP computation"],
 
-/* 43 */ ["optionBoldRed",  "nope1", 				"- - - SOUNDINGS - - -", ""],
-
-/* 44 */ ["",		 "sounding1", 		"#1: EL1", "Predicted SkewT*LogP Sounding Chart for EL1"],
-
-/* 45 */ ["",		 "sounding2", 		"#2: EL2", "Predicted SkewT*LogP Sounding Chart for EL2"],
-
-/* 46 */ ["",		 "sounding3", 		"#3: EL4", "Predicted SkewT*LogP Sounding Chart for EL4"],
-
-/* 47 */ ["",		 "sounding4", 		"#4: EL7", "Predicted SkewT*LogP Sounding Chart for EL7"],
-
-/* 48 */ ["",		 "sounding5", 		"#5: Henrietta", "Predicted SkewT*LogP Sounding Chart for Henrietta"],
-
-/* 49 */ ["",		 "sounding6", 		"#6: Fremont Pk", "Predicted SkewT*LogP Sounding Chart for Fremont Peak"],
-
-/* 50 */ ["",		 "sounding7", 		"#7: Panoche", "Predicted SkewT*LogP Sounding Chart for Panoche"]
+/* 43 */ ["",		 "xbl_-121.92_37.88_windk_18", 			"Vert.Velocity Slice at Diablo Pk", "A vertical slice depicting vertical velocity (colors) and potential temperature (lines), intended to help analyze occurrences of strong upward motion.  The slice is taken through the fixed location.  The slice parallells the wind direction at that height and is depicted by a white dashed line on the [Vertical Velocity at 1000/950/850/700/500mb] paramter plots (with left-right on the slice always being left-right on the plan view).  Mt. wave predictions are best made using resultions no larger than 4km, since a coarser grid generally does not resolve the waves accurately.  Mountain waves tend to occur above the surface and tilt upwind with height, whereas BL convergences are surface-based and vertically oriented.  These parameters are obtained directly from WRF model output and not from a BLIPMAP computation"],
 
 ];
 
@@ -160,13 +146,6 @@ var	paramListFull  = [
 	paramList[39],
 	paramList[40],
 	paramList[41],
-	paramList[42]
-// 	paramList[43],
-// 	paramList[44],
-// 	paramList[45],
-// 	paramList[46],
-// 	paramList[47],
-// 	paramList[48],
-// 	paramList[49],
-// 	paramList[50]
+	paramList[42],
+	paramList[43]
 ];

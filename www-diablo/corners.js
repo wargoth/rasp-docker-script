@@ -32,11 +32,11 @@ var f = {
     'latlon_file': 'latlon2d.json',
     'date': T.getTime(),
     'default_t': '1400',
-    'dir': 'OUT/FCST/',
+    'dir': 'OUT+0/FCST/',
     'bounds': corners.Bounds[4],
     'centre': corners.Centre[4],
 }
-forecasts.push(f)
+forecasts.push(f);
 
 T.setTime(Now + mS_Day);
 var f = {
@@ -48,7 +48,7 @@ var f = {
     'bounds': corners.Bounds[4],
     'centre': corners.Centre[4],
 }
-forecasts.push(f)
+forecasts.push(f);
     
 T.setTime(Now + mS_Day * 2);
 var f = {
@@ -60,4 +60,4 @@ var f = {
     'bounds': corners.Bounds[4],
     'centre': corners.Centre[4],
 }
-forecasts.push(f)
+forecasts.push(f);
