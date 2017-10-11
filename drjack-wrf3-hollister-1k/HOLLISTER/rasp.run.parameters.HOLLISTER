@@ -1,0 +1,145 @@
+#############################################################################
+################## RUN-ARGUMENT-SPECIFIC RASP PARAMETERS ####################
+#############################################################################
+### For updated information on these model parameters see                 ###
+### http://www.drjack.info/twiki/bin/view/RASPop/RunParametersDescription ###
+#############################################################################
+###### SET REGIONS PROCESSED BY THIS RUN
+  @REGION_DOLIST = ( 'HOLLISTER' );
+###### SET MODEL USED FOR DOWNLOADED GRIB FILES
+  ###    ( USA=ETA WORLD=GFSA/GFSN )
+  $GRIBFILE_MODEL = 'ETA' ;      
+###### SET OPTIONAL WEBSITE FILE CREATION (can be bypassed by certain run arguments)
+  ### $LSEND=  0 = images produced only in local "RASP/RUN/OUT" subdirectory
+  ##           1 = copy images to web directory using filenames pre-pended with "test"
+  ##           2 = copy images to web directory using normal filenames 
+  ##           -1,-2 = ftp images to remote server (NOT OPERATIONALLY TESTED)
+  ##           3 = also do firstofday processing (NOT IMPLEMENTED)
+  ### uses test so will not overwrite if set by run argument
+  if( not defined $LSEND ) { $LSEND =  0; }
+###### SET OPTIONAL ARCHIVE FILE CREATION (can be bypassed by certain run arguments)
+  ### $LSAVE=  0 = inhibits all archive saves to preserve disk space
+  ##           1 = saves data files - uses least disk space
+  ##           2 = saves data files and images - uses much less disk space than $LSAVE=2
+  ##           3 = saves data files and image files and initial condition files to a storage directory 
+  ### uses test so will not overwrite if set by run argument
+  if( not defined $LSAVE ) { $LSAVE =  0; }
+##################################################################
+#############  START OF REGION DEPENDENT PARAMETERS  #############
+###### SET RUN TYPE
+  ### LRUN_WINDOW 0=> stage-1 only (no_windowing) 2=> stage-1+2 "windowed" run 
+  $LRUN_WINDOW{'HOLLISTER'} = 0 ;
+  #ACTIVATE THE NEXT LINE TO PRODUCE 2-STAGE RUN: 
+  #for2stage: $LRUN_WINDOW{'HOLLISTER'} = 2 ;
+###### SET BASIC PARAMETER LIST
+  @{$PARAMETER_DOLIST{'HOLLISTER'}} = ( 'hbl','dbl','hwcrit','dwcrit','wstar','bsratio', 'sfcsunpct','sfcshf', 'blwind','sfcwind', 'zsfclcl','zsfclcldif','zsfclclmask', 'zblcl','zblcldif','zblclmask','blcloudpct','blcwbase', 'boxwmax','press850','press700','press500', 'bltopvariab','bltopwind','wblmaxmin','zwblmaxmin', 'blwindshear', 'sfctemp','sfcdewpt', 'cape', 'wstar_bsratio', 'hglider' );
+  ###### ADD POSSIBLE SOUNDINGS  (corresponding data must be set in file ../WRF/NCL/rasp.ncl.region.data)
+  # push @{$PARAMETER_DOLIST{'HOLLISTER'}}, ( 'sounding1','sounding2','sounding3','sounding4','sounding5','sounding6','sounding7');  
+  
+  # fixed cross-secitons
+  # push @{$PARAMETER_DOLIST{'HOLLISTER'}}, ( 'xbl_-121.915_37.881_windk_14',  'xbl_-121.781_37.821_windk_14' );
+
+######  SET GRID LOCAL TIME
+  $LOCALTIME_ID{'HOLLISTER'} = substr `date +%Z`,0,3; ;
+  $LOCALTIME_ADJ{'HOLLISTER'} = substr `date +%z`,0,3; ; 
+###### SET GRIB FILE PROCESSING 
+  ### GRIBFILES_PER_FORECAST_PERIOD IS NUMBER OF GRIB FILES PROCESSED AT SAME TIME
+  #12hr_run:
+  $GRIBFILES_PER_FORECAST_PERIOD{'HOLLISTER'} = 6 ;
+  #15hr_run:  $GRIBFILES_PER_FORECAST_PERIOD{'HOLLISTER'} = 6 ;
+  ### BLIPMAPFILEDOLIST LISTS ALL GRIB FILES NEEDED
+  %GRIBFILE_DOLIST = 
+  (
+    #4immediaterun: 
+    # 'HOLLISTER'   => ['0Z+12', '0Z+15','0Z+18','0Z+21','0Z+24','0Z+27' ],
+    #once-daily_12_hr_run (earlyAM):      'HOLLISTER'   => [ '6Z+6','6Z+9','6Z+12','6Z+15','6Z+18' ],
+    #once-daily_15_hr_run (earlyAM):      'HOLLISTER'   => [ '6Z+6','6Z+9','6Z+12','6Z+15','6Z+18','6Z+21' ],
+    #once-daily_15_hr_run (lateAM):      'HOLLISTER'   => [ '12Z+0','12Z+3','12Z+6','12Z+9','12Z+12','12Z+15' ],
+    #twice-daily_15hr_run (earlyAM+lateAM):      'HOLLISTER'   => [ '12Z+0','12Z+3','12Z+6','12Z+9','12Z+12','12Z+15', '6Z+6','6Z+9','6Z+12','6Z+15','6Z+18','6Z+21' ],
+    #thrice-daily_12hr_run:     'HOLLISTER'   => [ '12Z+0','12Z+3','12Z+6','12Z+9','12Z+12', '6Z+6','6Z+9','6Z+12','6Z+15','6Z+18', '0Z+12','0Z+15','0Z+18','0Z+21','0Z+24' ],
+  );
+
+
+###### SET DOMAIN PARAMETERS FOR STAGE1 [NON-WINDOW] ITERATION
+  #12hr_run:
+  $FORECAST_PERIODHRS{'HOLLISTER'}[0] = 15;              # used only by initialization programs
+  #15hr_run:    $FORECAST_PERIODHRS{'HOLLISTER'}[0] = 15;       # used only by initialization programs
+  ### SET DOMAIN START/END TIMES
+  $DOMAIN1_STARTHH{'HOLLISTER'}[0] = '12';               # must have grib file available for this time
+  #12hr_run:
+  $DOMAIN1_ENDHH{'HOLLISTER'}[0] = '03';                 # 
+  #15hr_run:    $DOMAIN1_ENDHH{'HOLLISTER'}[0] = '03';              # 
+  $DOMAIN2_START_DELTAMINS{'HOLLISTER'}[0] = 0;          # if non-zero, must set namelist.template INPUT_FROM_FILE=false
+  $DOMAIN2_END_DELTAMINS{'HOLLISTER'}[0] = 0;            # relative to domain1
+  $DOMAIN3_START_DELTAMINS{'HOLLISTER'}[0] = 420;        # if non-zero, must set namelist.template INPUT_FROM_FILE=false
+  $DOMAIN3_END_DELTAMINS{'HOLLISTER'}[0] = -120;         # relative to domain1
+  ### SET MODEL TIME STEP
+  $DOMAIN1_TIMESTEP{'HOLLISTER'}[0] = 60.;               # over-rides namelist.template TIME_STEP
+  ### SET BOUNDARY UPDATE PERIODS
+  $BOUNDARY_UPDATE_PERIODHRS{'HOLLISTER'}[0] = 3;        # used only by initialization programs
+  $NDOWN_BOUNDARY_UPDATE_PERIODHRS{'HOLLISTER'}[0] = 0 ; # should always be 0 for non-windowed case
+  ### SET BLIPMAP IMAGE SIZES  - 1st,2nd value for 1st,2nd domain - blank=NOplot
+  @{$PLOT_IMAGE_SIZE{'HOLLISTER'}[0]} = ( '', '1000x1000' );
+  ### SET HISTORY HOUR FOR IMAGES PLOTTED WHEN $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
+  #12hr_run:
+  @{$PLOT_HHMMLIST{'HOLLISTER'}[0]} =  ('1800', '1900', '2000', '2100', '2200', '2300', '0000', '0100' );
+  #15hr_run:  @{$PLOT_HHMMLIST{'HOLLISTER'}[0]} =  ( '1200', '1500', '1800', '2100', '0000','0300' );
+  ### CREATE WEBSITE IMAGE LOOP
+  #12hr_run:
+  @{$PLOT_LOOP_HHMMLIST{'HOLLISTER'}[0]} =  ( 'title', '1200', '1500', '1800', '2100', '0000' );
+  #15hr:  @{$PLOT_LOOP_HHMMLIST{'HOLLISTER'}[0]} =  ( 'title', '1200', '1500','1800', '2100', '0000', '0300' );
+  ### SET HISTORY HOUR FOR IMAGES SAVED WHEN LSAVE>0 AND $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
+  #12hr_run:
+  @{$SAVE_PLOT_HHMMLIST{'HOLLISTER'}[0]} = ( '2100' );
+  #15hr:  @{$SAVE_PLOT_HHMMLIST{'HOLLISTER'}[0]} = ( '1800','2100','0000','0300' );
+  
+  # request latest GRIB files for processing
+  use POSIX;
+
+  # first file has to be at 12Z
+  $start = int($DOMAIN1_STARTHH{'HOLLISTER'}[0]);
+  if(defined $ENV{'START_HOUR'}) {
+    $start = int($ENV{'START_HOUR'});
+  }
+  $init_time = int(POSIX::floor(`date -u +%H` / 6) * 6);
+  if(defined $ENV{'INIT_TIME'}) {
+    $init_time = int($ENV{'INIT_TIME'});
+  }
+
+  # if it's EOD, pick next day. This also works with +1, +2, etc runs
+  if (($start % 24) < $init_time) {
+     $start = $start + 24;
+  }
+  for ($i = 0; $i < $GRIBFILES_PER_FORECAST_PERIOD{'HOLLISTER'}; $i++) {
+     $forecast = ($start + 3*$i - $init_time);
+     $GRIBFILE_DOLIST{'HOLLISTER'}[$i] = "${init_time}Z+${forecast}";
+  }
+  
+###### SET DOMAIN PARAMETERS FOR STAGE2 [WINDOWED] ITERATION (not used if no windowing done)
+  $FORECAST_PERIODHRS{'HOLLISTER'}[1] = 3;       
+  ### SET DOMAIN START/END TIMES
+  $DOMAIN1_STARTHH{'HOLLISTER'}[1] = '18';               # must have grib file available at this time
+  $DOMAIN1_ENDHH{'HOLLISTER'}[1] = '21';          
+  $DOMAIN2_START_DELTAMINS{'HOLLISTER'}[1] = 0;          # if non-zero, must set namelist.template INPUT_FROM_FILE=false
+  $DOMAIN2_END_DELTAMINS{'HOLLISTER'}[1] = 0;            # relative to domain1
+  $DOMAIN3_START_DELTAMINS{'HOLLISTER'}[1] = 0;          # if non-zero, must set namelist.template INPUT_FROM_FILE=false
+  $DOMAIN3_END_DELTAMINS{'HOLLISTER'}[1] = 0;            # relative to domain1
+  ### SET MODEL TIME STEP
+  $DOMAIN1_TIMESTEP{'HOLLISTER'}[1] = 24.;               # over-rides namelist.template TIME_STEP
+  ### SET BOUNDARY UPDATE PERIODS
+  $BOUNDARY_UPDATE_PERIODHRS{'HOLLISTER'}[1] = 1;     
+  ### NDOWN_BOUNDARY_UPDATE_PERIODHRS must agree with stage 1 output interval (in hours)
+  $NDOWN_BOUNDARY_UPDATE_PERIODHRS{'HOLLISTER'}[1] = 1 ;  
+  ### SET BLIPMAP IMAGE SIZES  - 1st,2nd value for 1st,2nd domain - blank=NOplot
+  @{$PLOT_IMAGE_SIZE{'HOLLISTER'}[1]} = ( '', '1200x1200' );
+  ### SET HISTORY HOUR FOR IMAGES PLOTTED WHEN $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
+  @{$PLOT_HHMMLIST{'HOLLISTER'}[1]} =  ( '2000', '2030', '2100' );
+  ### CREATE WEBSITE IMAGE LOOP
+  @{$PLOT_LOOP_HHMMLIST{'HOLLISTER'}[1]} =  ( );
+  ### SET HISTORY HOUR FOR IMAGES SAVED WHEN LSAVE>0 AND $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
+  @{$SAVE_PLOT_HHMMLIST{'HOLLISTER'}[1]} = ( '2100' );
+##############  END OF REGION DEPENDENT PARAMETERS  ##############
+##################################################################
+##########    ADDITIONS MUST BE MADE ABOVE THIS LINE    ##########
+##################################################################
+1.;
