@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<!--
+	RASPtableGM
+	paul.scorer01_at_gmail.com
+
+	Features:
+	* Autosize Selectors and Image for display
+	* Shift-Scroll Wheel adjusts Opacity of Overlay
+	* Normal Google Maps Controls (Dbl-L-Click, Drag, Scroll Wheel)
+	* Single L-Click for Forwards within a day
+	* R-Click or Long-Left-Click gives InfoWindow @ Location with Value for time or whole day, SkewT or X-section (for wave plots)
+	* Loads image for next time on Day/Param selection
+	* Soundings indicated by Clickable Markers
+	* Archives 
+	* Auto select times for STD / DST
+	* NB: M$ Windows users must ensure TimeZone and "Adjust clock for Daylight Saving" is set in Control Panel->Date & Time
+-->
+
+<html>
+<head>
+	<title>Hollister RASP</title>
+	<meta http-equiv="Expires" Content="-1">
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+	<script type= "text/javascript">
+		// CHANGE THESE FOR YOUR SITE
+
+		// Put your times below for January under "STD" and for the "other" time standard under "DST"
+		// These are probably the wrong way round for the Southern Hemisphere :-)
+		var tzArray = ["STD", "DST"];
+		tzArray["STD"] = ["1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700"];
+		tzArray["DST"] = ["1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800" ];
+
+		// Placeholder - I don't have windowed runs
+		// var w2times = ["0900", "1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800"];
+
+	</script>
+
+	<!-- BUT *DON'T* CHANGE THESE UNLESS YOU KNOW WHAT YOU'RE DOING :-) -->
+
+	<!-- NOTE: Order is important here! -->
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAwQ4fDcZWGG1dpqlXeIAfMJ0xUyMPv9sg&amp;libraries=geometry"></script>
+	<script type="text/javascript" src="paramList.js"></script>
+	<script type="text/javascript" src="corners.js"></script>
+	<script type="text/javascript" src="soundings.js"></script>
+	<script type="text/javascript" src="RASPtableGM.js"></script>
+	<script type="text/javascript" src="ExtDraggableObject.js"></script>
+
+
+	<style type="text/css">
+		html { height: 100% }
+		body { 
+			height: 100%; 
+			margin: 0px; 
+			padding: 0px;
+			overflow: hidden;
+		}
+
+		.optionBoldBlue {
+			font-weight: bold;
+			color: blue;
+		}
+		.optionBoldRed {
+			font-weight: bold;
+			color: red;
+		}
+		#topTitle {
+			text-align: center;
+		}
+		
+		#abs_td {
+			position: relative;
+		}
+		
+		#zoomBox {
+			height: 100%;
+			width: 100%;
+			left: 0;
+			position: absolute;
+			top: 0;    
+		}
+		
+		#controls {
+			position: absolute;
+			top: 3em;
+			left: 1em;
+		}
+
+	</style>
+</head>
+<body>
+	<noscript>
+		<h1 align=center> <font color=red>This page requires JavaScript to be enabled</font></h1>
+	</noscript>
+	
+	<table > <!-- Outermost Table - 1 Row; 2 elements: Form + Image -->
+		<tr>
+			<td class="gmnoprint" valign="top" style="display:none">	<!-- All the Selection Boxes -->
+				<div id="selectorDiv">
+					<table id="selectors" border=1 cellspacing="0" cellpadding="0">
+						<tr> <!-- Row 0 -->
+							<td>	<!-- Day -->
+							</td>
+							<td>
+							</td>
+						</tr>	<!-- End Row 0 -->
+
+						<tr>	<!-- Row 3 -->
+						<tr>	<!-- Row 4 -->
+							<td colspan=2 align=center>
+							
+							</td>
+						</tr>	<!-- End Row 4 -->
+						<tr>	<!-- Row 5 -->
+							<td colspan=2 id="paramSelector">	<!-- Parameter -->
+								
+							</td>
+						</tr>   <!-- End Row 5 -->
+						<tr>	<!-- Row 6 -->
+							<td colspan = 2 >
+								<div id="desc" style="width: 200pt" />
+							</td>
+						</tr>	<!-- End Row 6 -->
+						<tr>    <!-- Row 8 -->
+							<td align=center colspan=2 title="URL of this exact Page" id="Url">
+								<div id="myUrl" align=center>	
+									<!-- Filled in by javascript -->
+								</div>
+							</td>
+						</tr>	 <!-- End Row 8 -->
+						<tr>	<!-- Row 12 -->
+							<td colspan=2 align=center>
+								<form id="airspace" action="">
+									<b>AirSpace</b>
+									<input onClick="doAirspace();" name="air" type="checkbox" value="class_B.kmz">B
+									<input onClick="doAirspace();" name="air" type="checkbox" value="class_C.kmz">C
+									<input onClick="doAirspace();" name="air" type="checkbox" value="class_D.kmz">D
+								</form>
+							</td>
+						</tr>	<!-- End Row 12 -->
+						<tr>	<!-- Row 14 -->
+						<!--	<td title="Legal Stuff" colspan=2 >
+								<div align = center>
+									<button onClick="return popup('DisclaimerNew.html', 'Disclaimer', 550, 270)">Disclaimer</button>
+								</div>
+							</td>-->
+						</tr>	<!-- End Row 14 -->
+					</table>
+				</div> <!-- End selectors div -->
+			</td>	<!-- End Selection Boxes -->
+			<td id="imgdata" valign="top"> <!-- Images go here -->
+				<div id="imgDiv">
+					<table border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td>
+								<div id="topDiv" >
+								<div id="topTitle" >
+									<img id="theTitle" src="" alt="The Title">
+								</div>
+								</div>
+							</td>
+							<td/> <!-- Dummy Cell -->
+						</tr>
+						<tr>
+							<td id="abs_td">
+								<div id="zoomBox"> </div>
+							</td>
+							<td>
+								<div id="sideScale">
+									<img id="theSideScale" src="" alt="Side Scale">
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td>
+								<div id="botScale">
+									<img id="theScale" alt="Bottom Scale" src="">
+								</div>
+							</td>
+							<td/> <!-- Dummy Cell -->
+						</tr>
+					</table>
+				</div>
+                <div id="controls">
+                    <p><input type="button" value="Hide controls" id="hide_controls"/></p>
+                    <div id="hidable"> 
+                        <p><select title="Select Day" id="Day" ></select>
+                        <select title="Select Time" id="Time" ></select></p>
+                        <p><select title="Select Parameter" id="Param" size="13" ></select></p>
+                        <p><a href="mailto:yavalek@gmail.com">Feedback</a></p>
+                    </div>
+                </div>
+
+			</td>
+		</tr>
+	</table>
+	<!-- Finally, kick the javascript into action -->
+	<script type="text/javascript"> initIt(); </script>
+
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-104440623-4"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-104440623-4');
+    </script>
+
+</body>
+</html>
