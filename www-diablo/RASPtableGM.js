@@ -240,9 +240,39 @@ function initIt()
 		ASstring = head + "/" + airspacetype[i].value ;
 		airspaceArray[i] = new google.maps.KmlLayer(ASstring, airspaceOpts);
 	}
+	
+   
+    var marker = new google.maps.Marker({
+        icon: "location.png"
+    });
+
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.watchPosition(function(position) {
+            var pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            
+            marker.setPosition(pos);
+            marker.setMap(map);
+        }, function() {
+            marker.setMap(null);
+        });
+    } else {
+        // Browser doesn't support Geolocation
+        handleLocationError();
+    }
+
 
 	doChange(null);
 }
+
+function handleLocationError() {
+    console.warn('Location is not supported by the browser');
+}
+
 
 
 function getFile(fpath, onload) {
@@ -330,7 +360,6 @@ function newMap()
 		streetViewControl:  false,
 		// overviewMapControl:  true,
 		minZoom:            6,
-		maxZoom:            12,
         mapTypeControlOptions: {
             position: google.maps.ControlPosition.BOTTOM_RIGHT
         },

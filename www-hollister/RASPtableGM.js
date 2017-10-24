@@ -242,23 +242,23 @@ function initIt()
 	}
 	
    
-    var infoWindow = new google.maps.Marker({
+    var marker = new google.maps.Marker({
         icon: "location.png"
     });
 
 
     if (navigator.geolocation) {
 
-        navigator.geolocation.getCurrentPosition(function(position) {
+        navigator.geolocation.watchPosition(function(position) {
             var pos = {
                 lat: position.coords.latitude,
                 lng: position.coords.longitude
             };
             
-            infoWindow.setPosition(pos);
-            infoWindow.setMap(map);
+            marker.setPosition(pos);
+            marker.setMap(map);
         }, function() {
-            handleLocationError();
+            marker.setMap(null);
         });
     } else {
         // Browser doesn't support Geolocation
@@ -360,7 +360,6 @@ function newMap()
 		streetViewControl:  false,
 		// overviewMapControl:  true,
 		minZoom:            6,
-		maxZoom:            12,
         mapTypeControlOptions: {
             position: google.maps.ControlPosition.BOTTOM_RIGHT
         },

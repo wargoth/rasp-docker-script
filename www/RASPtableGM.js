@@ -63,8 +63,8 @@ function initIt()
 {
 	document.body.style.overflow = "hidden"; // Disable Scrolling
 	window.onresize = function(){setSize();}
-	
-	document.getElementById("hide_controls").onclick = function () {
+
+    document.getElementById("hide_controls").onclick = function () {
         var hidable = document.getElementById("hidable");
         var button = document.getElementById("hide_controls");
         if (hidable.style.display == 'none') {
@@ -240,9 +240,39 @@ function initIt()
 		ASstring = head + "/" + airspacetype[i].value ;
 		airspaceArray[i] = new google.maps.KmlLayer(ASstring, airspaceOpts);
 	}
+	
+   
+    var marker = new google.maps.Marker({
+        icon: "location.png"
+    });
+
+
+    if (navigator.geolocation) {
+
+        navigator.geolocation.watchPosition(function(position) {
+            var pos = {
+                lat: position.coords.latitude,
+                lng: position.coords.longitude
+            };
+            
+            marker.setPosition(pos);
+            marker.setMap(map);
+        }, function() {
+            marker.setMap(null);
+        });
+    } else {
+        // Browser doesn't support Geolocation
+        handleLocationError();
+    }
+
 
 	doChange(null);
 }
+
+function handleLocationError() {
+    console.warn('Location is not supported by the browser');
+}
+
 
 
 function getFile(fpath, onload) {
@@ -330,7 +360,6 @@ function newMap()
 		streetViewControl:  false,
 		// overviewMapControl:  true,
 		minZoom:            6,
-		maxZoom:            12,
         mapTypeControlOptions: {
             position: google.maps.ControlPosition.BOTTOM_RIGHT
         },
@@ -438,6 +467,9 @@ function checkParam()
 	var param =document.getElementById("Param").value;
     if (badParams.includes(param))
         return "";
+    
+    if (param.startsWith('xbl_'))
+        return '';
 
 	/* Identify the Vector Params */
 	if(param === "wstar_bsratio")	return("wstar bsratio");
@@ -751,7 +783,7 @@ function loadImage(dirn)
 			t = document.getElementById("Time").options[x].value;
 			ximgURL = imgURL + param;
             ximgURL += ".curr." + t + "lst.d2" ;
-			if(param.startsWith("sounding") || param.startsWith("boxwmax")){
+			if(param.startsWith("sounding") || param == "boxwmax" || param.startsWith("xbl_")){
 				isSounding = true;
 				siz = (Format == "Landscape" ? imgHt : imgWid);
 				Pics[x] = new Image(siz, siz);
@@ -943,6 +975,9 @@ function _latlon2ij(latLng, rect, ll_table) {
         var path = test.path(ll_table);
                 
         var poly = new google.maps.Polygon({paths: path});
+        
+//         debug mode
+//         poly.setMap(map);
 
         if (google.maps.geometry.poly.containsLocation(latLng, poly)) {
             return _latlon2ij(latLng, test, ll_table);
@@ -1079,7 +1114,7 @@ function newclick(E)
         if (!ij) { return };
 
     if (ximgURL in dataCache) {
-        showTooltip(dataCache[ximgURL], ij, E.latLng);
+     showTooltip(dataCache[ximgURL], ij, E.latLng);
     } else {
         getFile(ximgURL, function () {
             if (this.status != 200) return;
