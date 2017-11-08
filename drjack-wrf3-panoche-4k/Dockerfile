@@ -6,6 +6,12 @@ WORKDIR /root/
 
 ADD geog.tar.gz $BASEDIR
 
+# Patch files with fixes
+COPY GM.patch /root/
+RUN cd $BASEDIR \
+  && patch -p1 < ~/GM.patch \
+  && rm ~/GM.patch
+
 COPY PANOCHE/wrfsi.nl PANOCHE/rasp.run.parameters.PANOCHE $BASEDIR/PANOCHE/
 COPY PANOCHE/rasp.region_data.ncl $BASEDIR/GM/
 COPY PANOCHE/rasp.site.runenvironment $BASEDIR/
