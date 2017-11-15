@@ -1,6 +1,8 @@
 This is a Florida region in 4 km resolution
 
 # Building
+Make sure to download geog.tar.gz into current directory from here: https://www.dropbox.com/s/x6wcsm7c26vt67a/geog.tar.gz?dl=0
+Then run:
 
 ```
 docker build -t my-rasp-florida-4k .
