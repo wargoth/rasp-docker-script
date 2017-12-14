@@ -12,7 +12,7 @@ RUN cd $BASEDIR \
   && patch -p1 < ~/GM.patch \
   && rm ~/GM.patch
 
-COPY PANOCHE/wrfsi.nl PANOCHE/rasp.run.parameters.PANOCHE $BASEDIR/PANOCHE/
+COPY PANOCHE/wrfsi.nl PANOCHE/rasp.run.parameters.PANOCHE PANOCHE/namelist.input.template $BASEDIR/PANOCHE/
 COPY PANOCHE/rasp.region_data.ncl $BASEDIR/GM/
 COPY PANOCHE/rasp.site.runenvironment $BASEDIR/
 
