@@ -24,25 +24,11 @@ WORKDIR /root/
 # Unpack software packages
 # Assuming you have downloaded these files from here: http://rasp-uk.uk/SOFTWARE/WRFV3.x/
 #
-ADD raspGM.tgz $BASEDIR
-ADD raspGM-bin.tgz $BASEDIR
 ADD rangs.tgz $BASEDIR
 ADD PANOCHE.tgz $BASEDIR
+# Unpack raspGM
+RUN curl -SL https://github.com/wargoth/rasp-gm/archive/stable.tar.gz | tar  xzC $BASEDIR --strip-components=1
 
-
-#
-# Alternatively tell the script to download them
-#
-#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/raspGM.tgz | tar xC $BASEDIR
-#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/raspGM-bin.tgz | tar xC $BASEDIR
-#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/rangs.tgz | tar xC $BASEDIR
-#RUN curl -SL http://rasp-uk.uk/SOFTWARE/WRFV3.x/PANOCHE.tgz | tar xC $BASEDIR
-
-# Patch files with fixes
-COPY GM.patch /root/
-RUN cd $BASEDIR \
-  && patch -p1 < ~/GM.patch \
-  && rm ~/GM.patch
 
 #
 # Set environment for interactive container shells
