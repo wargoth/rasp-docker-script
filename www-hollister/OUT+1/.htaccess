@@ -1,6 +1,4 @@
-Options +Indexes
-
 <IfModule mod_expires.c>
 ExpiresActive On
-ExpiresDefault "access plus 1 day"
+ExpiresDefault "modification plus 12 hours"
 </IfModule>
