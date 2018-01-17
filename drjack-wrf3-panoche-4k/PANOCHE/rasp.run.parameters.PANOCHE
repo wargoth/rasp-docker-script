@@ -11,8 +11,8 @@
   $GRIBFILE_MODEL = 'ETA' ;    
   $GRIB_LEFT_LON   = -127 ;
   $GRIB_RIGHT_LON  =   -115 ;
-  $GRIB_BOTTOM_LAT =  32 ;
-  $GRIB_TOP_LAT    =  43 ;
+  $GRIB_BOTTOM_LAT =  31 ;
+  $GRIB_TOP_LAT    =  44 ;
 
 ###### SET OPTIONAL WEBSITE FILE CREATION (can be bypassed by certain run arguments)
   ### $LSEND=  0 = images produced only in local "RASP/RUN/OUT" subdirectory
