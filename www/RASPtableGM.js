@@ -1079,6 +1079,7 @@ function newclick(E)
     var fid = document.getElementById("Day").options.selectedIndex
 
 	if( !forecasts[fid].bounds.contains(E.latLng)){ // Outside forecast area!
+        console.log('Outside boundaries')
 		return;
 	}
 	
@@ -1111,10 +1112,13 @@ function newclick(E)
     ximgURL = imgURL + "{0}.curr.{1}lst.d2.data".format(param, t);
     
     ij = latlon2ij(E.latLng, latLon2d[latlon_file]);
-        if (!ij) { return };
+    if (!ij) { 
+        console.log('No IJ');
+        return ;
+    };
 
     if (ximgURL in dataCache) {
-     showTooltip(dataCache[ximgURL], ij, E.latLng);
+        showTooltip(dataCache[ximgURL], ij, E.latLng);
     } else {
         getFile(ximgURL, function () {
             if (this.status != 200) return;
