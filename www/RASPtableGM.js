@@ -41,7 +41,7 @@ var topHeight;
 var map;
 var opacity = 50;	// default opacity
 var centre;
-var zoom = 8;		// default zoom
+var zoom = typeof default_zoom !== 'undefined' ? default_zoom : 10;		// default zoom
 var ctrFlag = false;
 var OPACITY_MAX_PIXELS = 57; // Width of opacity control image
 var opacity_control = "N";
@@ -51,6 +51,8 @@ var waslong = false;	// longclick
 var wasSounding = false ;
 
 var latLon2d = [];
+
+var def_param = typeof default_param !== 'undefined' ? default_param : 3; // default parameter index, see paramListFull
 
 
  /***********************
@@ -123,8 +125,8 @@ function initIt()
 
 
 	document.getElementById("Day").options[0].selected    = true;				// Today
-	document.getElementById("Param").options[3].selected  = true;				// hcrit
-	document.getElementById("desc").innerHTML             = paramListFull[document.getElementById("Param").selectedIndex][3] ;
+	document.getElementById("Param").options[def_param].selected  = true;				// hcrit
+	document.getElementById("desc").innerHTML = paramListFull[document.getElementById("Param").selectedIndex][def_param] ;
     
     document.getElementById("help_button").onclick = function() {
         alert((document.getElementById("desc")).innerHTML);
@@ -763,15 +765,16 @@ function doChange(E)
 			}
 		}
 		setTimes();
-        
-        
+	}
+	
+	if (oldDayIndex !== document.getElementById("Day").selectedIndex) {
         // check if the date is current or not
         var fid = document.getElementById("Day").selectedIndex;
         
         get_current_data_file(function (data) {
             checkDate(data.header['Day'], forecasts[fid].date)
         })
-	}
+    }
 
 
 	/* Save current values, so can detect change */
