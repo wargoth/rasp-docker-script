@@ -35,8 +35,8 @@
 		tzArray["STD"] = ["1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700"];
 		tzArray["DST"] = ["1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800" ];
 
-		// Placeholder - I don't have windowed runs
-		// var w2times = ["0900", "1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800"];
+        var default_zoom = 10;
+		var default_param = 29; // hcrit
 
 	</script>
 
@@ -190,7 +190,7 @@
                     <div id="hidable"> 
                         <p><select title="Select Day" id="Day" ></select>
                         <select title="Select Time" id="Time" ></select></p>
-                        <p><select title="Select Parameter" id="Param" size="13" ></select></p>
+                        <p><select title="Select Parameter" id="Param" size="13" ></select> <button id="help_button" type="button"><b>?</b></button></p>
                         <p><a href="mailto:yavalek@gmail.com">Feedback</a></p>
                     </div>
                 </div>

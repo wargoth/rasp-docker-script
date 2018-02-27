@@ -41,7 +41,7 @@ var topHeight;
 var map;
 var opacity = 50;	// default opacity
 var centre;
-var zoom = 10;		// default zoom
+var zoom = typeof default_zoom !== 'undefined' ? default_zoom : 10;		// default zoom
 var ctrFlag = false;
 var OPACITY_MAX_PIXELS = 57; // Width of opacity control image
 var opacity_control = "N";
@@ -51,6 +51,8 @@ var waslong = false;	// longclick
 var wasSounding = false ;
 
 var latLon2d = [];
+
+var def_param = typeof default_param !== 'undefined' ? default_param : 3; // default parameter index, see paramListFull
 
 
  /***********************
@@ -123,8 +125,13 @@ function initIt()
 
 
 	document.getElementById("Day").options[0].selected    = true;				// Today
-	document.getElementById("Param").options[29].selected  = true;				// hcrit
-	document.getElementById("desc").innerHTML             = paramListFull[document.getElementById("Param").selectedIndex][3] ;
+	document.getElementById("Param").options[def_param].selected  = true;				// hcrit
+	document.getElementById("desc").innerHTML = paramListFull[document.getElementById("Param").selectedIndex][def_param] ;
+    
+    document.getElementById("help_button").onclick = function() {
+        alert((document.getElementById("desc")).innerHTML);
+    }
+    
 
     setTimes();
 
@@ -680,6 +687,54 @@ function setTimes()
 		if(Tindex == i || (Tindex == -1 && times[i] == forecasts[fid].default_t))
 			document.getElementById("Time").options[i].selected = true;
 	}
+
+}
+
+function checkDate(strDate, expectedDate) {
+    var d = strDate.split(' ')
+    var gotDate = new Date(d[0], d[1] - 1, d[2])
+    var expected = new Date()
+    expected.setTime(expectedDate)
+    
+    var got = "{0} {1} {2}".format(gotDate.getFullYear(), gotDate.getMonth(), gotDate.getDate());
+    var exp = "{0} {1} {2}".format(expected.getFullYear(), expected.getMonth(), expected.getDate());
+
+    if (got != exp) {
+        console.log("Got " + got);
+        console.log("Exp " + exp);
+        window.setTimeout( 'alert("Note: Forecast date doesn\'t match")', 1)
+    }
+}
+
+
+function get_current_data_file(callback) {
+        
+    // check if the date is current or not
+    var tIdx   = document.getElementById("Time").selectedIndex;
+    var param  = checkParam();
+    if (!param) {
+        return;
+    }
+    var imgURL =  getBasedir() ;
+    
+    if (param.includes(' ')) {
+        param = param.split(' ')[0]
+    }
+
+    var t = document.getElementById("Time").options[tIdx].value;
+    var ximgURL = imgURL + "{0}.curr.{1}lst.d2.data".format(param, t);
+
+    if (ximgURL in dataCache) {
+        callback(dataCache[ximgURL])
+    } else {
+        getFile(ximgURL, function () {
+            if (this.status != 200) return;
+
+            data = parseData(ximgURL, this.response);
+            dataCache[ximgURL] = data;
+            callback(data)
+        });
+    }
 }
 
 /*******************************/
@@ -711,6 +766,15 @@ function doChange(E)
 		}
 		setTimes();
 	}
+	
+	if (oldDayIndex !== document.getElementById("Day").selectedIndex) {
+        // check if the date is current or not
+        var fid = document.getElementById("Day").selectedIndex;
+        
+        get_current_data_file(function (data) {
+            checkDate(data.header['Day'], forecasts[fid].date)
+        })
+    }
 
 
 	/* Save current values, so can detect change */
@@ -1012,6 +1076,12 @@ function get_single_value(name, line) {
     return v[1];
 }
 
+function get_day(name, line) {
+    rx = new RegExp(name + '= ([0-9\\s]+)');
+    var v = rx.exec(line);
+    return v[1];
+}
+
 var dataCache = {};
 
 function parseData(fname, txt) {
@@ -1035,6 +1105,7 @@ function parseData(fname, txt) {
             continue;
         if (line.startsWith('Day')) { // date, etc line
             // Day= 2017 8 22 TUE ValidLST= 1400 CES ValidZ= 1200 Fcst= 24.0 Init= 12 Param= sfcwind Direction Unit= m/sec Mult= 1 Min= 170 Max= 190
+            header['Day'] = get_day('Day', line)
             header['Mult'] = parseInt(get_single_value('Mult', line));
             header['Unit'] = get_single_value('Unit', line);
             continue;
@@ -1079,6 +1150,7 @@ function newclick(E)
     var fid = document.getElementById("Day").options.selectedIndex
 
 	if( !forecasts[fid].bounds.contains(E.latLng)){ // Outside forecast area!
+        console.log('Outside boundaries')
 		return;
 	}
 	
@@ -1095,35 +1167,16 @@ function newclick(E)
         });
         return;
     }
-	
-    var tIdx   = document.getElementById("Time").selectedIndex;
-	var param  = checkParam();
-    if (!param) {
-        return;
-    }
-    var imgURL =  getBasedir() ;
-    
-    if (param.includes(' ')) {
-        param = param.split(' ')[0]
-    }
-
-    t = document.getElementById("Time").options[tIdx].value;
-    ximgURL = imgURL + "{0}.curr.{1}lst.d2.data".format(param, t);
     
     ij = latlon2ij(E.latLng, latLon2d[latlon_file]);
-        if (!ij) { return };
-
-    if (ximgURL in dataCache) {
-     showTooltip(dataCache[ximgURL], ij, E.latLng);
-    } else {
-        getFile(ximgURL, function () {
-            if (this.status != 200) return;
-
-            data = parseData(ximgURL, this.response);
-            dataCache[ximgURL] = data;
-            showTooltip(data, ij, E.latLng);
-        });
-    }
+    if (!ij) { 
+        console.log('No IJ');
+        return ;
+    };
+    
+    get_current_data_file(function (data) {
+        showTooltip(data, ij, E.latLng);
+    });
 }
 
 
