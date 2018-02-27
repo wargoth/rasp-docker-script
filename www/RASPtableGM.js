@@ -113,6 +113,7 @@ function initIt()
             opt.appendChild(txt);
             opt.setAttribute('value', paramListFull[i][1])
             opt.setAttribute('class', paramListFull[i][0])
+            opt.setAttribute('data-id', i)
             document.getElementById("Param").appendChild(opt)
         }
 	}
@@ -748,7 +749,8 @@ function doChange(E)
 	}
 
 	/*  Descriptions */
-    (document.getElementById("desc")).innerHTML = paramListFull[document.getElementById("Param").selectedIndex][3] ;
+    var p = document.getElementById("Param");
+    (document.getElementById("desc")).innerHTML = paramListFull[p.options[p.selectedIndex].getAttribute('data-id')][3] ;
 
 	/* Clear saved images
 	 * if changing to / from archiveMode,
