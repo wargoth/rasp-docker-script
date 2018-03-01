@@ -1,7 +1,13 @@
 This is a modified PANOCHE region 4k resolution, running on production environment
 
 # Building
+Download data missing data files and put them into the directory (list of files http://www2.mmm.ucar.edu/wrf/users/download/get_sources_wps_geog.html):
+http://www2.mmm.ucar.edu/wrf/src/wps_files/bnu_soiltype_bot.tar.bz2
+http://www2.mmm.ucar.edu/wrf/src/wps_files/bnu_soiltype_top.tar.bz2
+http://www2.mmm.ucar.edu/wrf/src/wps_files/greenfrac_fpar_modis.tar.bz2
+http://www2.mmm.ucar.edu/wrf/src/wps_files/modis_landuse_20class_15s.tar.bz2
 
+Also download topo_SRTM3S.tar.gz from here: https://www.dropbox.com/s/ns3m6172hh0w4vu/topo_SRTM3S.tar.gz?dl=0
 ```
 docker build -t my-rasp-panoche-4k .
 ```

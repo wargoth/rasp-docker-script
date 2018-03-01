@@ -48,7 +48,7 @@
  time_step_fract_den                 = 1,
  max_dom                             = 2,
  e_we                 = 35,     46,
- e_sn                 = 86,     205,
+ e_sn                 = 92,     223,
  e_vert                              = 52,    52,    30,
  p_top_requested                     = 5000,
  num_metgrid_soil_levels             = 4,
@@ -76,6 +76,7 @@
                                        0.025, 0.000
 
  &physics
+ num_land_cat                        = 20,
  mp_physics                          = 5,     5,     5,
  ra_lw_physics                       = 1,     1,     1,
  ra_sw_physics                       = 1,     1,     1,
