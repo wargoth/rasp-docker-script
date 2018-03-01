@@ -7,7 +7,7 @@ RUN mkdir $BASEDIR
 # required packages
 RUN yum -y update \
   && yum -y install netcdf-fortran libpng15 iproute-tc tcp_wrappers-libs sendmail procmail psmisc procps-ng mailx \
-  findutils ImageMagick perl-CPAN ncl netcdf libpng libjpeg-turbo which patch vim less
+  findutils ImageMagick perl-CPAN ncl netcdf libpng libjpeg-turbo which patch vim less bzip2
   
 # configure CPAN and install required modules
 RUN (echo y;echo o conf prerequisites_policy follow;echo o conf commit) | cpan \
