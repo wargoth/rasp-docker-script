@@ -27,7 +27,11 @@ WORKDIR /root/
 ADD rangs.tgz $BASEDIR
 ADD PANOCHE.tgz $BASEDIR
 # Unpack raspGM
-RUN curl -SL https://github.com/wargoth/rasp-gm/archive/stable.tar.gz | tar  xzC $BASEDIR --strip-components=1
+ADD https://github.com/wargoth/rasp-gm/archive/stable.tar.gz $BASEDIR
+
+RUN cd $BASEDIR \
+  && tar xf stable.tar.gz --strip-components=1 \
+  && rm stable.tar.gz
 
 
 #
