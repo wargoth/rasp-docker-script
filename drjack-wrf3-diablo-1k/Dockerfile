@@ -6,6 +6,15 @@ WORKDIR /root/
 
 ADD geog.tar.gz $BASEDIR
 
+# updated hi res data
+ADD greenfrac_fpar_modis.tar.bz2 \
+  bnu_soiltype_bot.tar.bz2 \
+  bnu_soiltype_top.tar.bz2 \
+  modis_landuse_20class_15s.tar.bz2 \
+  topo_SRTM3S.tar.gz $BASEDIR/geog/
+
+RUN rm -rf $BASEDIR/PANOCHE
+
 RUN cp -a $BASEDIR/region.TEMPLATE $BASEDIR/DIABLO
 
 COPY DIABLO/wrfsi.nl DIABLO/rasp.run.parameters.DIABLO $BASEDIR/DIABLO/
@@ -14,10 +23,17 @@ COPY DIABLO/rasp.site.runenvironment $BASEDIR/
 
 ENV PATH="${BASEDIR}/bin:${PATH}"
 
-# initialize
+# this writes namelist.input.template, namelist.wps.template
 RUN cd $BASEDIR/DIABLO/ \
   && wrfsi2wps.pl \
-  && wps2input.pl \
+  && wps2input.pl
+
+# overwrite customized files
+COPY DIABLO/namelist.input.template DIABLO/namelist.wps.template DIABLO/namelist.wps $BASEDIR/DIABLO/
+COPY DIABLO/GEOGRID.TBL $BASEDIR/RUN.TABLES/
+
+# initialize grid
+RUN cd $BASEDIR/DIABLO/ \
   && geogrid.exe
 
 # cleanup
