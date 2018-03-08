@@ -1135,9 +1135,34 @@ var tooltip = new google.maps.InfoWindow({
     content: ""
 });
 
+
+var dist_start = null;
+
+function measure_start(lat, lon) {
+    tooltip.close();
+    dist_start = new google.maps.LatLng(lat, lon);
+    return false;
+}
+
+function measure_end(lat, lon) {
+    tooltip.close();
+    var distance = google.maps.geometry.spherical.computeDistanceBetween(dist_start, new google.maps.LatLng(lat, lon));
+    alert('Distance: '  + (distance / 1852).toPrecision(2) + 'NM'); // TODO allow other units
+    dist_start = null;
+    return false;
+}
+
 function showTooltip(data, ij, latLng) {
     tooltip.close();
-    tooltip.setContent(data.table[ij[1]][ij[0]] + " " + getUnit(data.header.Unit));
+    content = data.table[ij[1]][ij[0]] + ' ' + getUnit(data.header.Unit);
+    if (dist_start == null) {
+        content += '<br/><a href="javascript:measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
+            latLng.lng());
+    } else {
+        content += '<br/><a href="javascript:measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
+            latLng.lng());
+    }
+    tooltip.setContent(content);
     tooltip.setPosition(latLng)
     tooltip.open(map);
 }
