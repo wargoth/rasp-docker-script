@@ -1,7 +1,7 @@
 This is HOLLISTER region 1k resolution, running on production environment
 
 # Building
-Download missing data files and put them into the directory (list of files http://www2.mmm.ucar.edu/wrf/users/download/get_sources_wps_geog.html):
+Download requried data files and put them into the directory (list of files http://www2.mmm.ucar.edu/wrf/users/download/get_sources_wps_geog.html):
 http://www2.mmm.ucar.edu/wrf/src/wps_files/bnu_soiltype_bot.tar.bz2
 http://www2.mmm.ucar.edu/wrf/src/wps_files/bnu_soiltype_top.tar.bz2
 http://www2.mmm.ucar.edu/wrf/src/wps_files/greenfrac_fpar_modis.tar.bz2

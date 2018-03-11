@@ -14,7 +14,7 @@
  j_parent_start       = 1,      8,
  e_we                 = 38,     111,
  e_sn                 = 42,     131,
- geog_data_res        = 'modis_15s+bnu_soil_30s+modis_fpar+10m', 'SRTM3S+modis_15s+bnu_soil_30s+modis_fpar+2m',
+ geog_data_res        = 'modis_15s+bnu_soil_30s+modis_fpar+2m', 'SRTM3S+modis_15s+bnu_soil_30s+modis_fpar+30s',
  dx                   = 5000,
  dy                   = 5000,
  map_proj             = 'lambert',
