@@ -1,4 +1,4 @@
-FROM fedora:25
+FROM fedora:26
 
 ENV BASEDIR=/root/rasp/
 
@@ -27,11 +27,12 @@ WORKDIR /root/
 ADD rangs.tgz $BASEDIR
 ADD PANOCHE.tgz $BASEDIR
 # Unpack raspGM
-ADD https://github.com/wargoth/rasp-gm/archive/stable.tar.gz $BASEDIR
+ENV VERSION=master
+ADD https://codeload.github.com/wargoth/rasp-gm/tar.gz/$VERSION $BASEDIR/rasp-gm-$VERSION.tar.gz
 
 RUN cd $BASEDIR \
-  && tar xf stable.tar.gz --strip-components=1 \
-  && rm stable.tar.gz
+  && tar xf rasp-gm-$VERSION.tar.gz --strip-components=1 \
+  && rm rasp-gm-$VERSION.tar.gz
 
 
 #
