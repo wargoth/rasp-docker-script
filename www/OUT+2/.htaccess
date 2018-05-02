@@ -1,4 +1,4 @@
 <IfModule mod_expires.c>
 ExpiresActive On
-ExpiresDefault "modification plus 12 hours"
+ExpiresDefault "modification plus 11 hours"
 </IfModule>
