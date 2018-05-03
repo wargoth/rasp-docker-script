@@ -1,0 +1,40 @@
+&share
+ wrf_core             = 'ARW'
+ max_dom              = 2,
+ start_date           = '2014-02-22_03:00:00', '2014-02-22_03:00:00',
+ end_date             = '2014-02-22_18:00:00', '2014-02-22_18:00:00',
+ interval_seconds     = 10800,
+ io_form_geogrid      = 2,
+/
+
+&geogrid
+ parent_id            = 1,      1,
+ parent_grid_ratio    = 1,      3,
+ i_parent_start       = 1,      8,
+ j_parent_start       = 1,      8,
+ e_we                 = 40,     67,
+ e_sn                 = 70,     169,
+ geog_data_res        = 'modis_15s+bnu_soil_30s+modis_fpar+10m', 'SRTM3S+modis_15s+bnu_soil_30s+modis_fpar+2m',
+ dx                   = 12000,
+ dy                   = 12000,
+ map_proj             = 'lambert',
+ ref_lat              = 39,
+ ref_lon              = -119.2,
+ truelat1             = 40,
+ truelat2             = 40,
+ stand_lon            = -73,
+ GEOG_DATA_PATH       = '/root/rasp//geog'
+ OPT_GEOGRID_TBL_PATH = '/root/rasp//RUN.TABLES'
+/
+
+&ungrib
+ out_format           = 'WPS',
+ prefix               = 'UNGRIB',
+/
+
+&metgrid
+ fg_name              = 'UNGRIB',
+ io_form_metgrid      = 2,
+ OPT_METGRID_TBL_PATH = '/root/rasp//RUN.TABLES'
+/
+

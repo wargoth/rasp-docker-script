@@ -20,38 +20,30 @@
 
 <html>
 <head>
-	<title>TAHOE RASP</title>
+	<title>Sierra Nevada RASP</title>
 	<meta http-equiv="Expires" Content="-1">
 	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-	<meta http-equiv="Content-Script-Type" content="text/javascript">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 
 	<script type= "text/javascript">
 		// CHANGE THESE FOR YOUR SITE
-		var Server = "";
-		var SAVE_DAYS = 7;	// Number of days of saved wrfout files (inc Today!)
-					// MUST aggree with LSAVE_DAYS in rasp.run.parameters.REGIONXYZ
 
 		// Put your times below for January under "STD" and for the "other" time standard under "DST"
 		// These are probably the wrong way round for the Southern Hemisphere :-)
 		var tzArray = ["STD", "DST"];
 		tzArray["STD"] = ["1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700"];
 		tzArray["DST"] = ["1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800" ];
+		
+		var default_zoom = 8;
+		var default_param = 3; // hcrit
 
-		// Placeholder - I don't have windowed runs
-		// var w2times = ["0900", "1000", "1100", "1200", "1300", "1400", "1500", "1600", "1700", "1800"];
-
-		/* Change the size of the Plot Title
-		 * Maximum recommended value is 1.95
-		 * Minimum is 0 (No Title)
-		 */
-		var TitleScale = 1.0;	// Default
 	</script>
 
 	<!-- BUT *DON'T* CHANGE THESE UNLESS YOU KNOW WHAT YOU'RE DOING :-) -->
 
 	<!-- NOTE: Order is important here! -->
-	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=geometry"></script>
+	<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?v=3&amp;key=AIzaSyAwQ4fDcZWGG1dpqlXeIAfMJ0xUyMPv9sg&amp;libraries=geometry"></script>
 	<script type="text/javascript" src="paramList.js"></script>
 	<script type="text/javascript" src="corners.js"></script>
 	<script type="text/javascript" src="soundings.js"></script>
@@ -60,9 +52,13 @@
 
 
 	<style type="text/css">
-		textarea {background-color: #ffffff;
-		font-family: verdana,arial,helvetica;
-		font-size: 8pt}
+		html { height: 100% }
+		body { 
+			height: 100%; 
+			margin: 0px; 
+			padding: 0px;
+			overflow: hidden;
+		}
 
 		.optionBoldBlue {
 			font-weight: bold;
@@ -75,47 +71,53 @@
 		#topTitle {
 			text-align: center;
 		}
-	</style>
+		
+		#abs_td {
+			position: relative;
+		}
+		
+		#zoomBox {
+			height: 100%;
+			width: 100%;
+			left: 0;
+			position: absolute;
+			top: 0;    
+		}
+		
+		#controls {
+			position: absolute;
+			top: 3em;
+			left: 1em;
+		}
 
-	<style type="text/css">
-	  html { height: 100% }
-	  body { height: 100%; margin: 0px; padding: 0px }
 	</style>
 </head>
 <body>
 	<noscript>
 		<h1 align=center> <font color=red>This page requires JavaScript to be enabled</font></h1>
 	</noscript>
-	<table> <!-- Outermost Table - 1 Row; 2 elements: Form + Image -->
+	
+	<table > <!-- Outermost Table - 1 Row; 2 elements: Form + Image -->
 		<tr>
-			<td class="gmnoprint" valign="top">	<!-- All the Selection Boxes -->
+			<td class="gmnoprint" valign="top" style="display:none">	<!-- All the Selection Boxes -->
 				<div id="selectorDiv">
 					<table id="selectors" border=1 cellspacing="0" cellpadding="0">
 						<tr> <!-- Row 0 -->
 							<td>	<!-- Day -->
-								<select title="Select Day" id="Day" size="8">
-									<option>Wednesday 18 Jun</option>
-								</select>
 							</td>
 							<td>
-								<select size=8 title="Select Time" id="Time">
-									<option>0700</option>
-								</select>
 							</td>
 						</tr>	<!-- End Row 0 -->
 
 						<tr>	<!-- Row 3 -->
 						<tr>	<!-- Row 4 -->
 							<td colspan=2 align=center>
-								<button title="Switch between Full and Reduced parameter sets" id="paramSet">Press for Full Parameter Set</button>
+							
 							</td>
 						</tr>	<!-- End Row 4 -->
 						<tr>	<!-- Row 5 -->
 							<td colspan=2 id="paramSelector">	<!-- Parameter -->
-								<select title="Select Parameter" id="Param" size="13" >
-									<option style="color: red;" value="nope1">- - - THERMAL PARAMETERS - - -</option>
-									<!-- Filled in by script -->
-								</select>
+								
 							</td>
 						</tr>   <!-- End Row 5 -->
 						<tr>	<!-- Row 6 -->
@@ -164,7 +166,7 @@
 							<td/> <!-- Dummy Cell -->
 						</tr>
 						<tr>
-							<td>
+							<td id="abs_td">
 								<div id="zoomBox"> </div>
 							</td>
 							<td>
@@ -183,10 +185,29 @@
 						</tr>
 					</table>
 				</div>
+                <div id="controls">
+                    <p><input type="button" value="Hide controls" id="hide_controls"/></p>
+                    <div id="hidable"> 
+                        <p><select title="Select Day" id="Day" ></select>
+                        <select title="Select Time" id="Time" ></select></p>
+                        <p><select title="Select Parameter" id="Param" size="13" ></select> <button id="help_button" type="button"><b>?</b></button></p>
+                        <p><a href="mailto:yavalek@gmail.com">Feedback</a></p>
+                    </div>
+                </div>
+
 			</td>
 		</tr>
 	</table>
-    <!-- Finally, kick the javascript into action -->
+	<!-- Finally, kick the javascript into action -->
 	<script type="text/javascript"> initIt(); </script>
+	<!-- Global site tag (gtag.js) - Google Analytics -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-104440623-2"></script>
+	<script>
+	window.dataLayer = window.dataLayer || [];
+	function gtag(){dataLayer.push(arguments);}
+	gtag('js', new Date());
+
+	gtag('config', 'UA-104440623-2');
+	</script>
 </body>
 </html>

@@ -102,7 +102,9 @@ var paramList = 	[
 
 /* 41 */ ["",		 "press500", 			"Vertical Velocity at 500mb", "Vertical velocity at a constant pressure level of 500mb, plus wind speed/direction barbs.  [500mb presure levels are approximately at 19000 ft AMSL or 5800 m AMSL.]  Such upward motions can result from mountain wave or BL convergence.  A white dashed straight-line represents the location of the slice used for the [Vertical Velocity Slice through Vertical Velocity Maximum] parameter since these parameters are intended to be used in conjunction.  These parameters are obtained directly from WRF model output and not from a BLIPMAP computation"],
 
-/* 42 */ ["",		 "boxwmax", 			"Vert.Velocity Slice at Vert.Vel.Max", "A vertical slice depicting vertical velocity (colors) and potential temperature (lines), intended to help analyze occurrences of strong upward motion.  The slice is taken through the location of the maximum vertical velocity found at a height of approximately 5000 ft AGL over a domain which excludes the outer edge of the domain (the value of that maximum and its location is given in a subtitle of the plot).  The slice parallells the wind direction at that height and is depicted by a white dashed line on the [Vertical Velocity at 1000/950/850/700/500mb] paramter plots (with left-right on the slice always being left-right on the plan view).  Mt. wave predictions are best made using resultions no larger than 4km, since a coarser grid generally does not resolve the waves accurately.  Mountain waves tend to occur above the surface and tilt upwind with height, whereas BL convergences are surface-based and vertically oriented.  These parameters are obtained directly from WRF model output and not from a BLIPMAP computation"]
+/* 42 */ ["",		 "boxwmax", 			"Vert.Velocity Slice at Vert.Vel.Max", "A vertical slice depicting vertical velocity (colors) and potential temperature (lines), intended to help analyze occurrences of strong upward motion.  The slice is taken through the location of the maximum vertical velocity found at a height of approximately 5000 ft AGL over a domain which excludes the outer edge of the domain (the value of that maximum and its location is given in a subtitle of the plot).  The slice parallells the wind direction at that height and is depicted by a white dashed line on the [Vertical Velocity at 1000/950/850/700/500mb] paramter plots (with left-right on the slice always being left-right on the plan view).  Mt. wave predictions are best made using resultions no larger than 4km, since a coarser grid generally does not resolve the waves accurately.  Mountain waves tend to occur above the surface and tilt upwind with height, whereas BL convergences are surface-based and vertically oriented.  These parameters are obtained directly from WRF model output and not from a BLIPMAP computation"],
+
+/* 43 */ ["optionBoldRed",  "nope1", 				"- - - SOUNDINGS - - -", ""]
 
 ];
 
@@ -145,48 +147,4 @@ var	paramListFull  = [
 	paramList[40],
 	paramList[41],
 	paramList[42]
-];
-
-var paramListLite  = [
-	paramList[0],
-	paramList[1],
-// 	paramList[2],
-	// paramList[3],
-	paramList[4],
-	paramList[5],
-	// paramList[6],
-	// paramList[7],
-	// paramList[8],
-	// paramList[9],
-	paramList[11],
-	// paramList[12],
-// 	paramList[13],
-	// paramList[14],
-	// paramList[15],
-	paramList[16],
-	// paramList[17],
-	paramList[19],
-	paramList[20],
-	// paramList[21],
-	// paramList[22],
-	paramList[23],
-	paramList[24],
-	// paramList[25],
-	// paramList[26],
-	paramList[27],
-	// paramList[28],
-	// paramList[29],
-	paramList[30],
-	// paramList[31],
-	// paramList[32],
-	// paramList[33],
-	// paramList[34],
-	// paramList[35],
-	paramList[36],
-	// paramList[37],
-	// paramList[38],
-	paramList[39],
-	paramList[40],
-	paramList[41]
-	// paramList[42],
 ];

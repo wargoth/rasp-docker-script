@@ -9,7 +9,12 @@
 ###### SET MODEL USED FOR DOWNLOADED GRIB FILES
   ###    ( USA=ETA WORLD=GFSA/GFSN )
   $GRIBFILE_MODEL = 'ETA' ;      
-###### SET OPTIONAL WEBSITE FILE CREATION (can be bypassed by certain run arguments)
+  $GRIB_LEFT_LON   = -124 ;
+  $GRIB_RIGHT_LON  =   -114 ;
+  $GRIB_BOTTOM_LAT =  34 ;
+  $GRIB_TOP_LAT    =  45 ;
+
+  ###### SET OPTIONAL WEBSITE FILE CREATION (can be bypassed by certain run arguments)
   ### $LSEND=  0 = images produced only in local "RASP/RUN/OUT" subdirectory
   ##           1 = copy images to web directory using filenames pre-pended with "test"
   ##           2 = copy images to web directory using normal filenames 
@@ -75,7 +80,7 @@
   $BOUNDARY_UPDATE_PERIODHRS{'TAHOE'}[0] = 3;        # used only by initialization programs
   $NDOWN_BOUNDARY_UPDATE_PERIODHRS{'TAHOE'}[0] = 0 ; # should always be 0 for non-windowed case
   ### SET BLIPMAP IMAGE SIZES  - 1st,2nd value for 1st,2nd domain - blank=NOplot
-  @{$PLOT_IMAGE_SIZE{'TAHOE'}[0]} = ( '', '1200x1200' );
+  @{$PLOT_IMAGE_SIZE{'TAHOE'}[0]} = ( '', '1600x1600' );
   ### SET HISTORY HOUR FOR IMAGES PLOTTED WHEN $PLOT_IMAGE_SIZE FOR THAT DOMAIN NOT BLANK
   #12hr_run:
   @{$PLOT_HHMMLIST{'TAHOE'}[0]} =  ('1800', '1900', '2000', '2100', '2200', '2300', '0000', '0100' );
@@ -110,7 +115,12 @@
      $GRIBFILE_DOLIST{'TAHOE'}[$i] = "${init_time}Z+${forecast}";
   }
 
-###### SET DOMAIN PARAMETERS FOR STAGE2 [WINDOWED] ITERATION (not used if no windowing done)
+  # switch to GFSA if beyond ETA limits
+  if ($start + 3*($GRIBFILES_PER_FORECAST_PERIOD{'PANOCHE'} - 1) - $init_time > 84) {
+     $GRIBFILE_MODEL = 'GFSA' ;
+  }
+
+  ###### SET DOMAIN PARAMETERS FOR STAGE2 [WINDOWED] ITERATION (not used if no windowing done)
   $FORECAST_PERIODHRS{'TAHOE'}[1] = 3;       
   ### SET DOMAIN START/END TIMES
   $DOMAIN1_STARTHH{'TAHOE'}[1] = '18';               # must have grib file available at this time
