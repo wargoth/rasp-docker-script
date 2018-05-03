@@ -26,7 +26,8 @@ RUN cd $BASEDIR/PANOCHE/ \
   && wps2input.pl
 
 # overwrite customized files
-COPY PANOCHE/namelist.input.template PANOCHE/namelist.wps.template PANOCHE/namelist.wps $BASEDIR/PANOCHE/
+COPY PANOCHE/namelist.input.template PANOCHE/namelist.wps.template $BASEDIR/PANOCHE/
+COPY PANOCHE/namelist.wps.template $BASEDIR/PANOCHE/namelist.wps
 
 # initialize grid
 RUN cd $BASEDIR/PANOCHE/ \
