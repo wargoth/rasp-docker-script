@@ -116,7 +116,7 @@
   }
 
   # switch to GFSA if beyond ETA limits
-  if ($start + 3*($GRIBFILES_PER_FORECAST_PERIOD{'PANOCHE'} - 1) - $init_time > 84) {
+  if ($start + 3*($GRIBFILES_PER_FORECAST_PERIOD{'TAHOE'} - 1) - $init_time > 84) {
      $GRIBFILE_MODEL = 'GFSA' ;
   }
 
