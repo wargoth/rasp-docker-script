@@ -163,23 +163,21 @@ def delete_instance(compute, project, zone, name):
 def main(project_id, name, zone, timeout, max_restarts, ssh_private_key_path, params):
     compute = googleapiclient.discovery.build('compute', 'v1')
     
-    try:
-        instance = create_instance(compute, project_id, zone, name, params, ssh_private_key_path)
+    instance = create_instance(compute, project_id, zone, name, params, ssh_private_key_path)
 
-        while max_restarts > 0:
-            preempted = wait_for_termination(instance, compute, project_id, name, zone, timeout)
-            if not preempted:
-                print 'Instance (%s/%s/%s) terminated normally' % (project_id, zone, name)
-                break
+    while max_restarts > 0:
+        preempted = wait_for_termination(instance, compute, project_id, name, zone, timeout)
+        if not preempted:
+            print 'Instance (%s/%s/%s) terminated normally' % (project_id, zone, name)
+            break
+        else:
+            max_restarts -= 1
+            if max_restarts > 0:
+                print 'Restarting preempted instance (%s/%s/%s)' % (project_id, zone, name)
+                instance = start_instance(compute, project_id, name, zone)
             else:
-                max_restarts -= 1
-                if max_restarts > 0:
-                    print 'Restarting preempted instance (%s/%s/%s)' % (project_id, zone, name)
-                    instance = start_instance(compute, project_id, name, zone)
-                else:
-                    print 'Instance (%s/%s/%s) has been preempted and will not be restarted' % (project_id, zone, name)
-    finally:
-        delete_instance(compute, project_id, zone, name)
+                print 'Instance (%s/%s/%s) has been preempted and will not be restarted' % (project_id, zone, name)
+    delete_instance(compute, project_id, zone, name)
 
 
 def dt_parse(t):
