@@ -1,0 +1,74 @@
+#cloud-config
+
+write_files:
+- path: /etc/systemd/system/raspservice.service
+  permissions: 0644
+  owner: root
+  content: |
+    [Unit]
+    Description=Start RASP forecast
+    Requires=docker.service
+    After=docker.service
+
+    [Service]
+    Environment="HOME=/home/yavalek"
+    ExecStart=/bin/sh -c '/bin/bash /home/yavalek/run-forecast.sh >> /home/yavalek/run-forecast.log 2>&1'
+    
+
+- path: /home/yavalek/run-forecast.sh
+  permissions: 0755
+  owner: root
+  content: |
+    #!/bin/bash
+    
+    SSH_KEY=$(curl http://metadata/computeMetadata/v1/instance/attributes/private-key -H "Metadata-Flavor: Google")
+
+    touch /home/yavalek/.ssh/id_rsa
+    chown yavalek:yavalek /home/yavalek/.ssh/id_rsa
+    chmod 0600 /home/yavalek/.ssh/id_rsa
+    cat >/home/yavalek/.ssh/id_rsa <<EOL
+    ${SSH_KEY}
+    EOL
+    
+    i=${DAY}
+
+    if [ $(date -u +%H) -ge "18" ] || [ $(date -u +%H) -lt "12" ]; then
+        let "START_HOUR = ($i - 1) * 24 + 12";
+    else
+        let "START_HOUR = $i * 24 + 12";
+    fi
+    
+
+    HOST=${HOST}
+    RASP_DIR=${RASP_DIR}
+    RASP_NAME=${RASP_NAME}
+    persist_dir="/home/yavalek/$RASP_NAME/"
+    DOCKER_IMAGE=${DOCKER_IMAGE}
+    OUT_DIR="$persist_dir/OUT+$i"
+    LOG_DIR="$persist_dir/LOG+$i"
+    OUT="OUT+$i"
+
+    mkdir -p $OUT_DIR
+    mkdir -p $LOG_DIR
+    rm -f $OUT_DIR/*
+
+    echo "Starting $RASP_NAME job for $START_HOUR hr"
+
+    docker pull $DOCKER_IMAGE
+    docker images -q --filter "dangling=true" | xargs -r docker rmi
+    docker run -v $OUT_DIR:/root/rasp/$RASP_NAME/OUT/ -v $LOG_DIR:/root/rasp/$RASP_NAME/LOG/ --rm -e START_HOUR=$START_HOUR $DOCKER_IMAGE
+
+    echo "Finished $RASP_NAME job for $START_HOUR hr"
+
+    if [ "$(ls -A $OUT_DIR)" ]; then
+        rsync -e "ssh -i /home/yavalek/.ssh/id_rsa" -rvz "$OUT_DIR/" "$HOST:/home/public/$RASP_DIR/$OUT/FCST_/" \
+            && ssh -i /home/yavalek/.ssh/id_rsa $HOST "rm -rf $RASP_DIR/$OUT/FCST ; mv $RASP_DIR/$OUT/FCST_ $RASP_DIR/$OUT/FCST" ;
+    else
+        echo "$OUT_DIR is Empty"
+    fi
+
+    poweroff
+
+runcmd:
+- systemctl daemon-reload
+- systemctl start raspservice.service
