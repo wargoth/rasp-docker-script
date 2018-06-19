@@ -73,14 +73,13 @@ def populate_template(template, params):
         template = template.replace("${%s}" % k.upper(), v)
     return template
 
-def create_instance(compute, project, zone, name, params, ssh_private_key_path):
+def create_instance(compute, project, zone, name, params, ssh_private_key_path, machine_type):
     # Get the latest Debian Jessie image.
     image_response = compute.images().getFromFamily(
         project='cos-cloud', family='cos-stable').execute()
     source_disk_image = image_response['selfLink']
 
     # Configure the machine
-    machine_type = "zones/%s/machineTypes/n1-highcpu-8" % zone
     ssh_private_key = open(
         os.path.join(
             os.path.dirname(__file__), ssh_private_key_path), 'r').read()
@@ -91,7 +90,7 @@ def create_instance(compute, project, zone, name, params, ssh_private_key_path):
 
     config = {
         'name': name,
-        'machineType': machine_type,
+        'machineType': "zones/%s/machineTypes/%s" % (zone, machine_type),
 
         # Specify the boot disk and the image to use as a source.
         'disks': [
@@ -160,10 +159,10 @@ def delete_instance(compute, project, zone, name):
         instance=name).execute()
 
 
-def main(project_id, name, zone, timeout, max_restarts, ssh_private_key_path, params):
+def main(project_id, name, zone, timeout, max_restarts, ssh_private_key_path, params, machine_type):
     compute = googleapiclient.discovery.build('compute', 'v1')
     
-    instance = create_instance(compute, project_id, zone, name, params, ssh_private_key_path)
+    instance = create_instance(compute, project_id, zone, name, params, ssh_private_key_path, machine_type)
 
     while max_restarts > 0:
         preempted = wait_for_termination(instance, compute, project_id, name, zone, timeout)
@@ -209,9 +208,10 @@ if __name__ == '__main__':
     }
     
     ssh_private_key_path = config.get('Instance', 'ssh_private_key_path')
-    
+    machine_type = config.get('Instance', 'machine_type')
+
     for key in ['host', 'rasp_dir', 'rasp_name', 'docker_image']:
         params[key] = config.get('Instance', key)
 
     main(config.get('Instance', 'project_id'), args.name, config.get('Instance', 'zone'), 
-         int(args.timeout), int(args.max_restarts), ssh_private_key_path, params)
+         int(args.timeout), int(args.max_restarts), ssh_private_key_path, params, machine_type)
