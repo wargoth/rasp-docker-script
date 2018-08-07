@@ -50,6 +50,8 @@ ADD wrfsi_gui.tar.gz $BASEDIR
 # Setup. See http://www.drjack.info/twiki/bin/view/RASPop/ProgramInstall,
 # http://www.drjack.info/twiki/bin/view/RASPop/ProgramGridCreation and
 # http://www.drjack.info/twiki/bin/view/RASPop/GuiGridCreationSteps for details
+# 
+# For Europe, use north-east files, i.e. landuse_30s.NE, soiltype_bot_30s.NE, etc.
 #
 RUN cd $BASEDIR/WRF/wrfsi/extdata/GEOG \
   && curl -SL ftp://aftp.fsl.noaa.gov/divisions/frd-laps/WRFSI/Geog_Data/albedo_ncep.tar.tgz | tar xz \

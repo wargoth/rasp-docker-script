@@ -18,6 +18,8 @@ $ docker run -it -e DISPLAY=$DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix yavalek/dr
 Read comments in the script and download files mentioned in the script into the directory so you don't have to hit Dr. Jack's 
 server every time you build the image. Backup of these files: https://www.dropbox.com/sh/7sro9rmbgr02nqm/AADTBAk3W7ThLQAWU_Btw8fBa?dl=0
 
+For Europe regions, make sure to modify Dockerfile to use north-east files, i.e. landuse_30s.NE, soiltype_bot_30s.NE, etc.
+
 Run:
 
 ```
