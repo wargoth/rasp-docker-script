@@ -229,11 +229,27 @@ function initIt()
 
 	// Install handlers for the map
 	google.maps.event.addListener(map, 'rightclick',     function(event) { newclick(event); });	// R-Click and longpress
-	google.maps.event.addListener(map, 'longpress',      function(event) { newclick(event); });	// do the same thing
-// 	google.maps.event.addListener(map, 'click',          function(event) { oneclick(event);             });
 	google.maps.event.addListener(map, 'dragend',        function(event) { constrainMap(event);         });
 	google.maps.event.addListener(map, 'zoom_changed',   function(event) { constrainMap(event);         });
-	
+
+	var longpress = null;
+
+	google.maps.event.addListener(map, 'mousedown', function(event){
+		if(event.va.targetTouches && event.va.targetTouches.length == 1) {
+			clearTimeout(longpress);
+			longpress = setTimeout(function () { newclick(event); }, 500);
+		}else {
+			clearTimeout(longpress);
+		}
+	});
+	google.maps.event.addListener(map, 'dragstart', function(event){
+		clearTimeout(longpress);
+	});
+	google.maps.event.addListener(map, 'mouseup', function(event){
+		clearTimeout(longpress);
+	});
+
+
 	createOpacityControl(map); 
 	addSndMarkers();
 
@@ -1773,4 +1789,8 @@ function addSndMarkers()
 		addSoundingLink(marker, i);	// For unexplained reasons, this must be a separate function!
 		markerArray.push(marker);
 	}
+}
+
+function pr(text) {
+    console.log(text);
 }
