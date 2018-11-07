@@ -519,51 +519,6 @@ function checkParam()
 	return param ;
 }
 
-			
-var req = false;
-
-function doCallback(url, data, Event)
-{
-	/************************************************/
-	/* This stuff needed if running from file://... */
-	/* DELETE THE LINE BELOW TO INCLUDE  */
-	/*
-	try {
-		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-	} catch (e) {
-		alert("Permission UniversalBrowserRead denied.");
-	}
-	*/
-	/* AND THE LINE ABOVE */
-	// End This stuff needed
-	/************************************************/
-	if (window.XMLHttpRequest) {
-		try { req = new XMLHttpRequest(); }
-		catch (e) { req = false; }
-	}
-	else if (window.ActiveXObject) {
-		// For Internet Explorer on Windows
-		try { req = new ActiveXObject("Msxml2.XMLHTTP"); }
-		catch (e) {
-			try { req = new ActiveXObject("Microsoft.XMLHTTP"); }
-			catch (e) { req = false; }
-		}
-	}
-	if (req) {
-		req.onreadystatechange = function(){
-			if(req.readyState == 4 && req.status == 200){
-				addInfo(Event.latLng, '<pre>' + req.responseText + '</pre>');
-			}
-		}
-		try { req.open('POST', url, true); }
-		catch (E){ alert(E); }
-		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		req.send(data);
-	}
-	else { alert("Failed to send XML data"); }
-}
-
-var text;
 
 /******************/
 /* Set Image Size */
@@ -1370,25 +1325,6 @@ function deleteInfo()
 		}
 	}
 }
-
-
-/*
-function writePopup(text)
-{
-	var txt;
-
-	if(text.lastIndexOf('\n') - text.indexOf('\n') > 1){
-		// txt = document.getElementById("Param").value + "<br>" + text.replace(/\n/, (document.getElementById("Param").value === "wstar_bsratio" ? "<br>BS: ": "<br>Dirn: "));
-		txt = text.replace(/\n/, (document.getElementById("Param").value === "wstar_bsratio" ? "<br>BS: ": "<br>Dirn: ")) ;
-	}
-	else {
-		// txt = document.getElementById("Param").value + "<br>" + text;
-		txt = text +"<br>";
-	}
-	// alert('Text = "' + text + '"\nPosn = ' + Event.latLng)
-	addInfo(Event.latLng, txt, 80, 120);
-}
-*/
 
 
 
