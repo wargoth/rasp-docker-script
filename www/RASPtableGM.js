@@ -1134,22 +1134,107 @@ function measure_start(lat, lon) {
     return false;
 }
 
+// Define the overlay, derived from google.maps.OverlayView
+function Label(opt_options) {
+	// Initialization
+	this.setValues(opt_options);
+	
+	// Label specific
+	var span = this.span_ = document.createElement('span');
+	span.style.cssText = 'position: relative; left: -50%; top: -8px; ' +
+	                     'white-space: nowrap; border: 1px solid blue; ' +
+	                     'padding: 2px; background-color: white';
+	
+	var div = this.div_ = document.createElement('div');
+	div.appendChild(span);
+	div.style.cssText = 'position: absolute; display: none';
+}
+Label.prototype = new google.maps.OverlayView();
+
+// Implement onAdd
+Label.prototype.onAdd = function() {
+	var pane = this.getPanes().floatPane;
+	pane.appendChild(this.div_);
+	
+	// Ensures the label is redrawn if the text or position is changed.
+	var me = this;
+	this.listeners_ = [
+		google.maps.event.addListener(this, 'position_changed',
+			function() { me.draw(); }),
+		google.maps.event.addListener(this, 'text_changed',
+			function() { me.draw(); })
+	];
+};
+
+// Implement onRemove
+Label.prototype.onRemove = function() {
+	var i, I;
+	this.div_.parentNode.removeChild(this.div_);
+	
+	// Label is removed from the map, stop updating its position/text.
+	for (i = 0, I = this.listeners_.length; i < I; ++i) {
+		google.maps.event.removeListener(this.listeners_[i]);
+	}
+};
+
+// Implement draw
+Label.prototype.draw = function() {
+	var projection = this.getProjection();
+	var position = projection.fromLatLngToDivPixel(this.get('position'));
+	
+	var div = this.div_;
+	div.style.left = position.x + 'px';
+	div.style.top = position.y + 'px';
+	div.style.display = 'block';
+	
+	this.span_.innerHTML = this.get('text').toString();
+};
+
 function measure_end(lat, lon) {
     tooltip.close();
-    var distance = google.maps.geometry.spherical.computeDistanceBetween(dist_start, new google.maps.LatLng(lat, lon));
-    alert('Distance: '  + (distance / 1852).toPrecision(2) + 'NM'); // TODO allow other units
+    var dist_end = new google.maps.LatLng(lat, lon)
+    var pathCoords = [dist_start, dist_end];
+    var path = new google.maps.Polyline({
+        path: pathCoords,
+        geodesic: true,
+        strokeColor: '#000000',
+        strokeOpacity: 1.0,
+        strokeWeight: 2
+    });
+
+    path.setMap(map);
+    
+    var inBetween = google.maps.geometry.spherical.interpolate(dist_start, dist_end, 0.5);  
+    
+    var labelMarker = new google.maps.Marker({
+        position: inBetween,  
+        map: map,
+        visible: false
+    });
+    var distance = google.maps.geometry.spherical.computeDistanceBetween(dist_start, dist_end);
+    var myLabel = new Label();
+    myLabel.bindTo('position', labelMarker, 'position');
+    myLabel.set('text',  (distance / 1852).toFixed(1) + 'NM');
+    myLabel.setMap(map);
+
     dist_start = null;
     return false;
 }
 
 function showTooltip(data, ij, latLng) {
     tooltip.close();
-    content = data.table[ij[1]][ij[0]] + ' ' + getUnit(data.header.Unit);
+    content = '';
+    if (data && ij) {
+        content = data.table[ij[1]][ij[0]] + ' ' + getUnit(data.header.Unit);
+    }
+    if (content.length > 0) {
+        content += '<br/><br/>';
+    }
     if (dist_start == null) {
-        content += '<br/><a href="javascript:measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
+        content += '<a href="javascript:measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
             latLng.lng());
     } else {
-        content += '<br/><a href="javascript:measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
+        content += '<a href="javascript:measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
             latLng.lng());
     }
     tooltip.setContent(content);
@@ -1168,6 +1253,7 @@ function newclick(E)
 
 	if( !forecasts[fid].bounds.contains(E.latLng)){ // Outside forecast area!
         console.log('Outside boundaries')
+        showTooltip(null, null, E.latLng);
 		return;
 	}
 	
@@ -1177,17 +1263,20 @@ function newclick(E)
         getFile(forecasts[fid].latlon_file, function () {
             if(this.status != 200) {
                 console.warn(latlon_file + ' cannot be found')
+                showTooltip(null, null, E.latLng);
                 return;
             }
             latLon2d[latlon_file] = eval(this.response);
             newclick(E);
         });
+        showTooltip(null, null, E.latLng);
         return;
     }
     
     ij = latlon2ij(E.latLng, latLon2d[latlon_file]);
     if (!ij) { 
         console.log('No IJ');
+        showTooltip(null, null, E.latLng);
         return ;
     };
     
