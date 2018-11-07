@@ -27,7 +27,6 @@ var times;
 var map;
 var overlay = null;
 var markerArray = [];
-var infoArray = [];
 var airspaceArray = [];
 var ASstring;
 var Event;
@@ -399,6 +398,20 @@ function newMap()
 }
 
 
+function view_sounding(n) {
+	var sel = document.getElementById("Param");
+	var opts = sel.options;
+	
+	for (var opt, j = 0; opt = opts[j]; j++) {
+		if (opt.value == 'sounding' + n) {
+			sel.selectedIndex = j;
+			doChange();
+			break;
+		}
+	}
+
+	return false;
+}
 
 function addSoundingLink(marker, n)
 {
@@ -406,16 +419,10 @@ function addSoundingLink(marker, n)
 		marker,
 		'click',
 		function(){
-			ctrFlag = true;
-			centre = map.getCenter();
-			var sndURL = '<img src="' + getBasedir() + '/';
-			sndURL += 'sounding' + n + '.curr.'
-					+ document.getElementById("Time").value 
-					+ 'lst.d2.png" height=800 width=800>' ;
-					// + 'lst.d2.png" height=400 width=400>' ;
-			var infowindow = new google.maps.InfoWindow( { content: sndURL });
-			infoArray.push(infowindow);
-			infowindow.open(map, marker);
+			var text = "<a href='javascript:view_sounding(" + n + ");'>View " + soundings.NAM[n] + " sounding</a>"
+			tooltip.close();
+			tooltip = new google.maps.InfoWindow( { content: text });
+			tooltip.open(map, marker);
 		}
 	);
 }
@@ -802,7 +809,6 @@ function loadImage(dirn)
 	var tIdx   = document.getElementById("Time").selectedIndex;
 	var param  = document.getElementById("Param").value;
 
-	deleteInfo();		// Remove the InfoWindows
 	if(paramWindow){	// and BLIPspot / skewT popup window
 		paramWindow.close();
 	}
@@ -1255,77 +1261,6 @@ function newclick(E)
         showTooltip(data, ij, E.latLng);
     });
 }
-
-
-
-function addInfo(location, txt)
-{
-	var infoOpts;
-	var longline = false;
-
-	// if((imgWid < 480) || (imgHeight < 480))	// Remove other infoWindows on small screens
-	//	deleteInfo();
-	
-	var el = document.getElementById("popup").info;
-
-	for(i = 0; i < el.length; i++){
-		if(el[i].checked)
-			infoPopup = el[i].value;
-	}
-
-	var nlines = 2;	// Always need at least two lines to  prevent scroll bars
-	var ind = 0;
-	var longline = false;
-	for(var start = 0; (ind = txt.indexOf("\n", start)) > -1; start++, nlines++){
-		if(ind - start > 50)
-			longline = true;
-		start = ind;
-	}
-	// Deal also with html <br>'s
-	for(var start = 0; (ind = txt.indexOf("<br>", start)) > -1; start++, nlines++){
-		if(ind - start > 50)
-			longline = true;
-		start = ind;
-	}
-
-	if(longline)	// Allow for bottom scrollbar
-		nlines++;
-	txt1 = '<div style="height: ' + nlines + 'em;" >' + txt + '</div>';
-
-	infoOpts = {
-	           position: location,
-	           map:      map,
-		   maxHeight: 50,
-	           content:  txt1
-	};
-	var infowindow = new google.maps.InfoWindow( infoOpts );
-	infowindow.open(map);
-	infoArray.push(infowindow);
-
-	// This is a bit kludgy - Adjust *every* infowindow each time - but it seems to work!
-	google.maps.event.addDomListenerOnce(infowindow, 'domready', function(event) {
-			var arr = document.getElementsByTagName("pre");
-			for(var e = 0; e < arr.length; e++){
-				arr[e].parentNode.parentNode.style.overflow = 'visible';
-			}
-		}, true
-	);
-}
-
-function deleteInfo()
-{
-	if (infoArray) {
-		for(i  = 0; i < infoArray.length; i++) {
-			infoArray[i].setMap(null);
-		}
-		infoArray.length = 0;
-		if(ctrFlag){
-			map.panTo(centre); // Centre the map if Sounding has scrolled it
-			ctrFlag = false;
-		}
-	}
-}
-
 
 
 function LongClick(map, length) {
