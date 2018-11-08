@@ -134,12 +134,6 @@
 						</tr>	 <!-- End Row 8 -->
 						<tr>	<!-- Row 12 -->
 							<td colspan=2 align=center>
-								<form id="airspace" action="">
-									<b>AirSpace</b>
-									<input onClick="doAirspace();" name="air" type="checkbox" value="class_B.kmz">B
-									<input onClick="doAirspace();" name="air" type="checkbox" value="class_C.kmz">C
-									<input onClick="doAirspace();" name="air" type="checkbox" value="class_D.kmz">D
-								</form>
 							</td>
 						</tr>	<!-- End Row 12 -->
 						<tr>	<!-- Row 14 -->
@@ -191,6 +185,8 @@
                         <p><select title="Select Day" id="Day" ></select>
                         <select title="Select Time" id="Time" ></select></p>
                         <p><select title="Select Parameter" id="Param" size="13" ></select> <button id="help_button" type="button"><b>?</b></button></p>
+
+						<label><input class="airspace" onClick="doAirspace();" type="checkbox" value="airspace.kmz" checked/>Show airspace</label>
                         <p><a href="mailto:yavalek@gmail.com">Feedback</a></p>
                     </div>
                 </div>

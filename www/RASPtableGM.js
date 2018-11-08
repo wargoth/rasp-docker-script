@@ -28,7 +28,6 @@ var map;
 var overlay = null;
 var markerArray = [];
 var airspaceArray = [];
-var ASstring;
 var Event;
 
 var paramWindow = null;
@@ -262,13 +261,13 @@ function initIt()
 
 	url = location.href;
 	head = url.slice(0, url.lastIndexOf('/'))
-	var airspacetype = document.getElementById("airspace");
+	var airspacetype = document.getElementsByClassName("airspace");
 	for(i = 0; i < airspacetype.length; i++){
-		airspacetype[i].checked = false;	// Clear Airspace checkboxes
-		ASstring = head + "/" + airspacetype[i].value ;
-		airspaceArray[i] = new google.maps.KmlLayer(ASstring, airspaceOpts);
+		var kmz = head + "/" + airspacetype[i].value;
+		airspaceArray[i] = new google.maps.KmlLayer(kmz, airspaceOpts);
 	}
-	
+
+	doAirspace();
    
     var marker = new google.maps.Marker({
         icon: "location.png"
@@ -906,7 +905,7 @@ var imgFragment = null;
 
 function doAirspace()
 {
-	var airspacetype = document.getElementById("airspace");
+	var airspacetype = document.getElementsByClassName("airspace");
 
 	for(i = 0; i < airspacetype.length; i++){
 		if(airspacetype[i].checked){
