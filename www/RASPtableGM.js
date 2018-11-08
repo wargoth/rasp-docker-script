@@ -259,12 +259,9 @@ function initIt()
 		zIndex:		  1000
 	};
 
-	url = location.href;
-	head = url.slice(0, url.lastIndexOf('/'))
 	var airspacetype = document.getElementsByClassName("airspace");
-	for(i = 0; i < airspacetype.length; i++){
-		var kmz = head + "/" + airspacetype[i].value;
-		airspaceArray[i] = new google.maps.KmlLayer(kmz, airspaceOpts);
+	for(i = 0; i < airspacetype.length; i++) {
+		airspaceArray[i] = new google.maps.KmlLayer(airspacetype[i].value, airspaceOpts);
 	}
 
 	doAirspace();
