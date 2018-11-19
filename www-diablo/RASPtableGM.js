@@ -27,9 +27,7 @@ var times;
 var map;
 var overlay = null;
 var markerArray = [];
-var infoArray = [];
 var airspaceArray = [];
-var ASstring;
 var Event;
 
 var paramWindow = null;
@@ -229,11 +227,27 @@ function initIt()
 
 	// Install handlers for the map
 	google.maps.event.addListener(map, 'rightclick',     function(event) { newclick(event); });	// R-Click and longpress
-	google.maps.event.addListener(map, 'longpress',      function(event) { newclick(event); });	// do the same thing
-// 	google.maps.event.addListener(map, 'click',          function(event) { oneclick(event);             });
 	google.maps.event.addListener(map, 'dragend',        function(event) { constrainMap(event);         });
 	google.maps.event.addListener(map, 'zoom_changed',   function(event) { constrainMap(event);         });
-	
+
+	var longpress = null;
+
+	google.maps.event.addListener(map, 'mousedown', function(event){
+		if(event.va.targetTouches && event.va.targetTouches.length == 1) {
+			clearTimeout(longpress);
+			longpress = setTimeout(function () { newclick(event); }, 500);
+		}else {
+			clearTimeout(longpress);
+		}
+	});
+	google.maps.event.addListener(map, 'dragstart', function(event){
+		clearTimeout(longpress);
+	});
+	google.maps.event.addListener(map, 'mouseup', function(event){
+		clearTimeout(longpress);
+	});
+
+
 	createOpacityControl(map); 
 	addSndMarkers();
 
@@ -245,15 +259,12 @@ function initIt()
 		zIndex:		  1000
 	};
 
-	url = location.href;
-	head = url.slice(0, url.lastIndexOf('/'))
-	var airspacetype = document.getElementById("airspace");
-	for(i = 0; i < airspacetype.length; i++){
-		airspacetype[i].checked = false;	// Clear Airspace checkboxes
-		ASstring = head + "/" + airspacetype[i].value ;
-		airspaceArray[i] = new google.maps.KmlLayer(ASstring, airspaceOpts);
+	var airspacetype = document.getElementsByClassName("airspace");
+	for(i = 0; i < airspacetype.length; i++) {
+		airspaceArray[i] = new google.maps.KmlLayer(airspacetype[i].value, airspaceOpts);
 	}
-	
+
+	doAirspace();
    
     var marker = new google.maps.Marker({
         icon: "location.png"
@@ -383,6 +394,20 @@ function newMap()
 }
 
 
+function view_sounding(n) {
+	var sel = document.getElementById("Param");
+	var opts = sel.options;
+	
+	for (var opt, j = 0; opt = opts[j]; j++) {
+		if (opt.value == 'sounding' + n) {
+			sel.selectedIndex = j;
+			doChange();
+			break;
+		}
+	}
+
+	return false;
+}
 
 function addSoundingLink(marker, n)
 {
@@ -390,16 +415,10 @@ function addSoundingLink(marker, n)
 		marker,
 		'click',
 		function(){
-			ctrFlag = true;
-			centre = map.getCenter();
-			var sndURL = '<img src="' + getBasedir() + '/';
-			sndURL += 'sounding' + n + '.curr.'
-					+ document.getElementById("Time").value 
-					+ 'lst.d2.png" height=800 width=800>' ;
-					// + 'lst.d2.png" height=400 width=400>' ;
-			var infowindow = new google.maps.InfoWindow( { content: sndURL });
-			infoArray.push(infowindow);
-			infowindow.open(map, marker);
+			var text = "<a href='javascript:view_sounding(" + n + ");'>View " + soundings.NAM[n] + " sounding</a>"
+			tooltip.close();
+			tooltip = new google.maps.InfoWindow( { content: text });
+			tooltip.open(map, marker);
 		}
 	);
 }
@@ -503,51 +522,6 @@ function checkParam()
 	return param ;
 }
 
-			
-var req = false;
-
-function doCallback(url, data, Event)
-{
-	/************************************************/
-	/* This stuff needed if running from file://... */
-	/* DELETE THE LINE BELOW TO INCLUDE  */
-	/*
-	try {
-		netscape.security.PrivilegeManager.enablePrivilege("UniversalBrowserRead");
-	} catch (e) {
-		alert("Permission UniversalBrowserRead denied.");
-	}
-	*/
-	/* AND THE LINE ABOVE */
-	// End This stuff needed
-	/************************************************/
-	if (window.XMLHttpRequest) {
-		try { req = new XMLHttpRequest(); }
-		catch (e) { req = false; }
-	}
-	else if (window.ActiveXObject) {
-		// For Internet Explorer on Windows
-		try { req = new ActiveXObject("Msxml2.XMLHTTP"); }
-		catch (e) {
-			try { req = new ActiveXObject("Microsoft.XMLHTTP"); }
-			catch (e) { req = false; }
-		}
-	}
-	if (req) {
-		req.onreadystatechange = function(){
-			if(req.readyState == 4 && req.status == 200){
-				addInfo(Event.latLng, '<pre>' + req.responseText + '</pre>');
-			}
-		}
-		try { req.open('POST', url, true); }
-		catch (E){ alert(E); }
-		req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-		req.send(data);
-	}
-	else { alert("Failed to send XML data"); }
-}
-
-var text;
 
 /******************/
 /* Set Image Size */
@@ -831,7 +805,6 @@ function loadImage(dirn)
 	var tIdx   = document.getElementById("Time").selectedIndex;
 	var param  = document.getElementById("Param").value;
 
-	deleteInfo();		// Remove the InfoWindows
 	if(paramWindow){	// and BLIPspot / skewT popup window
 		paramWindow.close();
 	}
@@ -929,7 +902,7 @@ var imgFragment = null;
 
 function doAirspace()
 {
-	var airspacetype = document.getElementById("airspace");
+	var airspacetype = document.getElementsByClassName("airspace");
 
 	for(i = 0; i < airspacetype.length; i++){
 		if(airspacetype[i].checked){
@@ -1134,22 +1107,107 @@ function measure_start(lat, lon) {
     return false;
 }
 
+// Define the overlay, derived from google.maps.OverlayView
+function Label(opt_options) {
+	// Initialization
+	this.setValues(opt_options);
+	
+	// Label specific
+	var span = this.span_ = document.createElement('span');
+	span.style.cssText = 'position: relative; left: -50%; top: -8px; ' +
+	                     'white-space: nowrap; border: 1px solid blue; ' +
+	                     'padding: 2px; background-color: white';
+	
+	var div = this.div_ = document.createElement('div');
+	div.appendChild(span);
+	div.style.cssText = 'position: absolute; display: none';
+}
+Label.prototype = new google.maps.OverlayView();
+
+// Implement onAdd
+Label.prototype.onAdd = function() {
+	var pane = this.getPanes().floatPane;
+	pane.appendChild(this.div_);
+	
+	// Ensures the label is redrawn if the text or position is changed.
+	var me = this;
+	this.listeners_ = [
+		google.maps.event.addListener(this, 'position_changed',
+			function() { me.draw(); }),
+		google.maps.event.addListener(this, 'text_changed',
+			function() { me.draw(); })
+	];
+};
+
+// Implement onRemove
+Label.prototype.onRemove = function() {
+	var i, I;
+	this.div_.parentNode.removeChild(this.div_);
+	
+	// Label is removed from the map, stop updating its position/text.
+	for (i = 0, I = this.listeners_.length; i < I; ++i) {
+		google.maps.event.removeListener(this.listeners_[i]);
+	}
+};
+
+// Implement draw
+Label.prototype.draw = function() {
+	var projection = this.getProjection();
+	var position = projection.fromLatLngToDivPixel(this.get('position'));
+	
+	var div = this.div_;
+	div.style.left = position.x + 'px';
+	div.style.top = position.y + 'px';
+	div.style.display = 'block';
+	
+	this.span_.innerHTML = this.get('text').toString();
+};
+
 function measure_end(lat, lon) {
     tooltip.close();
-    var distance = google.maps.geometry.spherical.computeDistanceBetween(dist_start, new google.maps.LatLng(lat, lon));
-    alert('Distance: '  + (distance / 1852).toPrecision(2) + 'NM'); // TODO allow other units
+    var dist_end = new google.maps.LatLng(lat, lon)
+    var pathCoords = [dist_start, dist_end];
+    var path = new google.maps.Polyline({
+        path: pathCoords,
+        geodesic: true,
+        strokeColor: '#000000',
+        strokeOpacity: 1.0,
+        strokeWeight: 2
+    });
+
+    path.setMap(map);
+    
+    var inBetween = google.maps.geometry.spherical.interpolate(dist_start, dist_end, 0.5);  
+    
+    var labelMarker = new google.maps.Marker({
+        position: inBetween,  
+        map: map,
+        visible: false
+    });
+    var distance = google.maps.geometry.spherical.computeDistanceBetween(dist_start, dist_end);
+    var myLabel = new Label();
+    myLabel.bindTo('position', labelMarker, 'position');
+    myLabel.set('text',  (distance / 1852).toFixed(1) + 'NM');
+    myLabel.setMap(map);
+
     dist_start = null;
     return false;
 }
 
 function showTooltip(data, ij, latLng) {
     tooltip.close();
-    content = data.table[ij[1]][ij[0]] + ' ' + getUnit(data.header.Unit);
+    content = '';
+    if (data && ij) {
+        content = data.table[ij[1]][ij[0]] + ' ' + getUnit(data.header.Unit);
+    }
+    if (content.length > 0) {
+        content += '<br/><br/>';
+    }
     if (dist_start == null) {
-        content += '<br/><a href="javascript:measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
+        content += '<a href="javascript:measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
             latLng.lng());
     } else {
-        content += '<br/><a href="javascript:measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
+        content += '<a href="javascript:measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
             latLng.lng());
     }
     tooltip.setContent(content);
@@ -1168,6 +1226,7 @@ function newclick(E)
 
 	if( !forecasts[fid].bounds.contains(E.latLng)){ // Outside forecast area!
         console.log('Outside boundaries')
+        showTooltip(null, null, E.latLng);
 		return;
 	}
 	
@@ -1177,17 +1236,20 @@ function newclick(E)
         getFile(forecasts[fid].latlon_file, function () {
             if(this.status != 200) {
                 console.warn(latlon_file + ' cannot be found')
+                showTooltip(null, null, E.latLng);
                 return;
             }
             latLon2d[latlon_file] = eval(this.response);
             newclick(E);
         });
+        showTooltip(null, null, E.latLng);
         return;
     }
     
     ij = latlon2ij(E.latLng, latLon2d[latlon_file]);
     if (!ij) { 
         console.log('No IJ');
+        showTooltip(null, null, E.latLng);
         return ;
     };
     
@@ -1195,96 +1257,6 @@ function newclick(E)
         showTooltip(data, ij, E.latLng);
     });
 }
-
-
-
-function addInfo(location, txt)
-{
-	var infoOpts;
-	var longline = false;
-
-	// if((imgWid < 480) || (imgHeight < 480))	// Remove other infoWindows on small screens
-	//	deleteInfo();
-	
-	var el = document.getElementById("popup").info;
-
-	for(i = 0; i < el.length; i++){
-		if(el[i].checked)
-			infoPopup = el[i].value;
-	}
-
-	var nlines = 2;	// Always need at least two lines to  prevent scroll bars
-	var ind = 0;
-	var longline = false;
-	for(var start = 0; (ind = txt.indexOf("\n", start)) > -1; start++, nlines++){
-		if(ind - start > 50)
-			longline = true;
-		start = ind;
-	}
-	// Deal also with html <br>'s
-	for(var start = 0; (ind = txt.indexOf("<br>", start)) > -1; start++, nlines++){
-		if(ind - start > 50)
-			longline = true;
-		start = ind;
-	}
-
-	if(longline)	// Allow for bottom scrollbar
-		nlines++;
-	txt1 = '<div style="height: ' + nlines + 'em;" >' + txt + '</div>';
-
-	infoOpts = {
-	           position: location,
-	           map:      map,
-		   maxHeight: 50,
-	           content:  txt1
-	};
-	var infowindow = new google.maps.InfoWindow( infoOpts );
-	infowindow.open(map);
-	infoArray.push(infowindow);
-
-	// This is a bit kludgy - Adjust *every* infowindow each time - but it seems to work!
-	google.maps.event.addDomListenerOnce(infowindow, 'domready', function(event) {
-			var arr = document.getElementsByTagName("pre");
-			for(var e = 0; e < arr.length; e++){
-				arr[e].parentNode.parentNode.style.overflow = 'visible';
-			}
-		}, true
-	);
-}
-
-function deleteInfo()
-{
-	if (infoArray) {
-		for(i  = 0; i < infoArray.length; i++) {
-			infoArray[i].setMap(null);
-		}
-		infoArray.length = 0;
-		if(ctrFlag){
-			map.panTo(centre); // Centre the map if Sounding has scrolled it
-			ctrFlag = false;
-		}
-	}
-}
-
-
-/*
-function writePopup(text)
-{
-	var txt;
-
-	if(text.lastIndexOf('\n') - text.indexOf('\n') > 1){
-		// txt = document.getElementById("Param").value + "<br>" + text.replace(/\n/, (document.getElementById("Param").value === "wstar_bsratio" ? "<br>BS: ": "<br>Dirn: "));
-		txt = text.replace(/\n/, (document.getElementById("Param").value === "wstar_bsratio" ? "<br>BS: ": "<br>Dirn: ")) ;
-	}
-	else {
-		// txt = document.getElementById("Param").value + "<br>" + text;
-		txt = text +"<br>";
-	}
-	// alert('Text = "' + text + '"\nPosn = ' + Event.latLng)
-	addInfo(Event.latLng, txt, 80, 120);
-}
-*/
-
 
 
 function LongClick(map, length) {
@@ -1684,4 +1656,8 @@ function addSndMarkers()
 		addSoundingLink(marker, i);	// For unexplained reasons, this must be a separate function!
 		markerArray.push(marker);
 	}
+}
+
+function pr(text) {
+    console.log(text);
 }
