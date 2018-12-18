@@ -226,26 +226,58 @@ function initIt()
 	setSize();
 
 	// Install handlers for the map
-	google.maps.event.addListener(map, 'rightclick',     function(event) { newclick(event); });	// R-Click and longpress
+	google.maps.event.addListener(map, 'rightclick',     function(event) { newclick(event); });
 	google.maps.event.addListener(map, 'dragend',        function(event) { constrainMap(event);         });
 	google.maps.event.addListener(map, 'zoom_changed',   function(event) { constrainMap(event);         });
 
+	/** Longpress implementation start **/
 	var longpress = null;
-
-	google.maps.event.addListener(map, 'mousedown', function(event){
-		if(event.va.targetTouches && event.va.targetTouches.length == 1) {
+	var touchEvent = null;
+	var pressEvent = null;
+	
+	function dist(x1, y1, x2, y2) {
+		return Math.sqrt((x1 - x2)**2 + (y1 - y2)**2);
+	}
+	
+	document.body.addEventListener('touchstart', function(event) {
+		if(event.touches.length == 1) {
+			pressEvent = event
 			clearTimeout(longpress);
-			longpress = setTimeout(function () { newclick(event); }, 500);
-		}else {
+			longpress = setTimeout(function () {
+				if (touchEvent == null) {
+					return;
+				}
+				var t1 = pressEvent.touches[0]
+				var t2 = event.touches[0]
+				if (dist(t1.clientX, t1.clientY, t2.clientX, t2.clientY) < 10) {
+					newclick(touchEvent); 
+					touchEvent = null;
+				}
+			}, 500);
+		} else {
 			clearTimeout(longpress);
 		}
-	});
-	google.maps.event.addListener(map, 'dragstart', function(event){
+	}, true);
+
+	document.body.addEventListener('touchend', function(event) {
 		clearTimeout(longpress);
+	}, true);
+
+	document.body.addEventListener('touchmove', function(event) {
+		pressEvent = event
+		if(event.touches.length > 1) {
+			clearTimeout(longpress);
+		}
+	}, true);
+
+	google.maps.event.addListener(map, 'mousedown', function(event) {
+		touchEvent = event;
 	});
-	google.maps.event.addListener(map, 'mouseup', function(event){
-		clearTimeout(longpress);
+
+	google.maps.event.addListener(map, 'mouseup', function(event) {
+		touchEvent = null;
 	});
+	/** Longpress implementation end **/
 
 
 	createOpacityControl(map); 
@@ -256,6 +288,7 @@ function initIt()
 	var airspaceOpts = {
 		map:		  null,	// Don't specify map yet - done when AS is switched on
 		preserveViewport: true,
+// 		suppressInfoWindows: true,
 		zIndex:		  1000
 	};
 
@@ -1220,7 +1253,7 @@ function newclick(E)
 	var tail;
 	var parameter;
     
-    console.log(E.latLng.lat(), E.latLng.lng())
+//     console.log(E.latLng.lat(), E.latLng.lng())
     
     var fid = document.getElementById("Day").options.selectedIndex
 
