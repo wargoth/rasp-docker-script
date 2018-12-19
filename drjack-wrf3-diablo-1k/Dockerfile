@@ -28,8 +28,17 @@ RUN cd $BASEDIR/DIABLO/ \
   && wrfsi2wps.pl \
   && wps2input.pl
 
+
+# Patch files
+COPY DIABLO/namelist.input.template.patch DIABLO/namelist.wps.template.patch DIABLO/namelist.wps.patch $BASEDIR
+RUN cd $BASEDIR \
+  && patch -p0 < namelist.input.template.patch \
+  && patch -p0 < namelist.wps.template.patch \
+  && patch -p0 < namelist.wps.patch \
+  && rm *.patch
+ 
+
 # overwrite customized files
-COPY DIABLO/namelist.input.template DIABLO/namelist.wps.template DIABLO/namelist.wps $BASEDIR/DIABLO/
 COPY DIABLO/GEOGRID.TBL $BASEDIR/RUN.TABLES/
 
 # initialize grid

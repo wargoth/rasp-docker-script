@@ -11,10 +11,10 @@ corners["Bounds"]  = [];
 corners["Centre"] = [];
 
 corners.Bounds[4] = new google.maps.LatLngBounds(
-    new google.maps.LatLng(37.4281273, -122.4656525), // SW
-    new google.maps.LatLng(38.2707405, -121.3985596)  // NE
+    new google.maps.LatLng(36.8579979, -122.9287720), // SW
+    new google.maps.LatLng(38.3993187, -121.2042236)  // NE
 );
-corners.Centre[4] = new google.maps.LatLng(37.8494339, -121.9321060);
+corners.Centre[4] = new google.maps.LatLng(37.6286583, -122.0664978);
 
 
 var dayName   = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
