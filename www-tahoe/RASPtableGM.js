@@ -1237,10 +1237,10 @@ function showTooltip(data, ij, latLng) {
         content += '<br/><br/>';
     }
     if (dist_start == null) {
-        content += '<a href="javascript:measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
+        content += '<a href="javascript:;" onclick="measure_start({0},{1})">Measure distance from here</a>'.format(latLng.lat(),
             latLng.lng());
     } else {
-        content += '<a href="javascript:measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
+        content += '<a href="javascript:;" onclick="measure_end({0},{1})">Measure distance to here</a>'.format(latLng.lat(),
             latLng.lng());
     }
     tooltip.setContent(content);
