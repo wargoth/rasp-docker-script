@@ -1,0 +1,10 @@
+--- namelist.input.template
++++ namelist.input.template
+@@ -76,6 +76,7 @@
+                                        0.025, 0.000
+ 
+  &physics
++ num_land_cat                        = 20,
+  mp_physics                          = 5,     5,     5,
+  ra_lw_physics                       = 1,     1,     1,
+  ra_sw_physics                       = 1,     1,     1,

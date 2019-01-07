@@ -25,9 +25,14 @@ RUN cd $BASEDIR/PANOCHE/ \
   && wrfsi2wps.pl \
   && wps2input.pl
 
-# overwrite customized files
-COPY PANOCHE/namelist.input.template PANOCHE/namelist.wps.template $BASEDIR/PANOCHE/
-COPY PANOCHE/namelist.wps.template $BASEDIR/PANOCHE/namelist.wps
+# Patch files
+COPY PANOCHE/namelist.input.template.patch PANOCHE/namelist.wps.template.patch PANOCHE/namelist.wps.patch $BASEDIR/PANOCHE/
+RUN cd $BASEDIR/PANOCHE \
+  && patch -p0 < namelist.input.template.patch \
+  && patch -p0 < namelist.wps.template.patch \
+  && patch -p0 < namelist.wps.patch \
+  && rm *.patch
+ 
 
 # initialize grid
 RUN cd $BASEDIR/PANOCHE/ \

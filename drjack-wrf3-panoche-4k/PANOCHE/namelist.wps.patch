@@ -1,0 +1,10 @@
+--- namelist.wps
++++ namelist.wps
+@@ -24,6 +24,7 @@
+  stand_lon            = -77,
+  GEOG_DATA_PATH       = '/root/rasp//geog'
+  OPT_GEOGRID_TBL_PATH = '/root/rasp//RUN.TABLES'
++ geog_data_res        = 'modis_15s+bnu_soil_30s+modis_fpar+2m', 'SRTM3S+modis_15s+bnu_soil_30s+modis_fpar+30s',
+ /
+ 
+ &ungrib
