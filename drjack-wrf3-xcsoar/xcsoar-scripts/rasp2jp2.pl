@@ -29,6 +29,7 @@ $debug = 1;
 $rfile = $infile;
 open(INFILE,"<$rfile");
 while(<INFILE>) {
+  #if (/(.*) \[(.*)] Valid/) {
   if (/Param[=] (.*) Unit[=] (.*) Mult[=]/) {
     $title = $1;
     $units = $2;
@@ -126,7 +127,7 @@ $xmid = ($xmin+$xmax)/2;
 $x_0=0;
 $y_0=0;
 
-$s_proj = "+proj=lcc +lat_1=$lat_1 +lat_2=$lat_2 +pm=${lon_1}dW +lat_0=$lat_0 +lon_0=$lon_0 +x_0=$x_0 +y_0=$y_0 +datum=WGS84";
+$s_proj = "+proj=lcc +lat_1=$lat_1 +lat_2=$lat_2 +lat_0=$lat_0 +lon_0=$lon_0 +x_0=$x_0 +y_0=$y_0 +datum=WGS84";
 $t_proj = "+proj=latlong +datum=WGS84";
 
 #TODO: fail if cs2cs doesn't exist
