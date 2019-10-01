@@ -61,7 +61,8 @@ write_files:
     echo "Finished $RASP_NAME job for $START_HOUR hr"
 
     if [ "$(ls -A $OUT_DIR)" ]; then
-        rsync -e "ssh -i /home/yavalek/.ssh/id_rsa" -rvz "$OUT_DIR/" "$HOST:/home/public/$RASP_DIR/$OUT/FCST_/" \
+        docker run --rm -v $OUT_DIR:/data/ -v /home/yavalek/.ssh/id_rsa:/home/yavalek/.ssh/id_rsa eeacms/rsync:2.1 \
+            rsync -e "ssh -o StrictHostKeyChecking=no -i /home/yavalek/.ssh/id_rsa" -rvz /data/ "$HOST:/home/public/$RASP_DIR/$OUT/FCST_/" \
             && ssh -i /home/yavalek/.ssh/id_rsa $HOST "rm -rf $RASP_DIR/$OUT/FCST ; mv $RASP_DIR/$OUT/FCST_ $RASP_DIR/$OUT/FCST" ;
     else
         echo "$OUT_DIR is Empty"
