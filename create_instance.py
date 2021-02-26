@@ -12,6 +12,7 @@ import os
 from datetime import datetime, timedelta
 import ConfigParser
 import string
+import logging
 
 
 def get_operations(compute, project_id, zone, target_id):
@@ -23,13 +24,13 @@ def get_status(compute, project_id, name, zone):
 
 
 def stop_instance(compute, project_id, name, zone):
-    print 'Stopping instance (%s/%s/%s)' % (project_id, zone, name)
+    logging.info('Stopping instance (%s/%s/%s)', project_id, zone, name)
     op = compute.instances().stop(project=project_id, zone=zone, instance=name).execute()
     wait_for_operation(compute, project_id, zone, op['name'])
 
 
 def start_instance(compute, project_id, name, zone):
-    print 'Starting instance (%s/%s/%s)' % (project_id, zone, name)
+    logging.info('Starting instance (%s/%s/%s)', project_id, zone, name)
     assert get_status(compute, project_id, name, zone) == 'TERMINATED', 'Instance (%s/%s/%s) is already running' % (project_id, zone, name)
     instance = compute.instances().start(project=project_id, zone=zone, instance=name).execute()
     instance['startTime'] = datetime.utcnow()
@@ -39,13 +40,13 @@ def start_instance(compute, project_id, name, zone):
 
 
 def wait_for_termination(instance_data, compute, project_id, name, zone, timeout):
-    print "Waiting for %s to terminate" % name
-    
+    logging.info("Waiting for %s to terminate", name)
+
     force_shutdown_time = datetime.utcnow() + timedelta(minutes=timeout)
 
     while get_status(compute, project_id, name, zone) != 'TERMINATED':
         if datetime.utcnow() > force_shutdown_time:
-            print 'Instance (%s/%s/%s) timeout!' % (project_id, zone, name)
+            logging.error('Instance (%s/%s/%s) timeout!', project_id, zone, name)
             stop_instance(compute, project_id, name, zone)
             return False
         time.sleep(60)
@@ -57,7 +58,7 @@ def wait_for_termination(instance_data, compute, project_id, name, zone, timeout
 
 
 def wait_for_operation(compute, project, zone, operation):
-    print('Waiting for operation %s to finish...' % operation)
+    logging.info('Waiting for operation %s to finish...', operation)
     while True:
         time.sleep(3)
         result = compute.zoneOperations().get(project=project, zone=zone, operation=operation).execute()
@@ -120,7 +121,7 @@ def create_instance(compute, project, zone, name, params, ssh_private_key_path, 
                 'https://www.googleapis.com/auth/logging.write'
             ]
         }],
-            
+
         # Preemptible image
         'scheduling': {
             'preemptible': True
@@ -152,7 +153,7 @@ def create_instance(compute, project, zone, name, params, ssh_private_key_path, 
 
 
 def delete_instance(compute, project, zone, name):
-    print 'Deleting instance %s' % name
+    logging.info('Deleting instance %s', name)
     return compute.instances().delete(
         project=project,
         zone=zone,
@@ -161,21 +162,21 @@ def delete_instance(compute, project, zone, name):
 
 def main(project_id, name, zone, timeout, max_restarts, ssh_private_key_path, params, machine_type):
     compute = googleapiclient.discovery.build('compute', 'v1')
-    
+
     instance = create_instance(compute, project_id, zone, name, params, ssh_private_key_path, machine_type)
 
     while max_restarts > 0:
         preempted = wait_for_termination(instance, compute, project_id, name, zone, timeout)
         if not preempted:
-            print 'Instance (%s/%s/%s) terminated normally' % (project_id, zone, name)
+            logging.info('Instance (%s/%s/%s) terminated normally', project_id, zone, name)
             break
         else:
             max_restarts -= 1
             if max_restarts > 0:
-                print 'Restarting preempted instance (%s/%s/%s)' % (project_id, zone, name)
+                logging.info('Restarting preempted instance (%s/%s/%s)', project_id, zone, name)
                 instance = start_instance(compute, project_id, name, zone)
             else:
-                print 'Instance (%s/%s/%s) has been preempted and will not be restarted' % (project_id, zone, name)
+                logging.warning('Instance (%s/%s/%s) has been preempted and will not be restarted', project_id, zone, name)
     delete_instance(compute, project_id, zone, name)
 
 
@@ -199,19 +200,19 @@ if __name__ == '__main__':
     parser.add_argument('--max-restarts', default='3', help='Maximum number of restarts for preempted instance.')
 
     args = parser.parse_args()
-    
+
     config = ConfigParser.RawConfigParser()
     config.read(args.config)
-    
+
     params = {
         'day': args.day
     }
-    
+
     ssh_private_key_path = config.get('Instance', 'ssh_private_key_path')
     machine_type = config.get('Instance', 'machine_type')
 
     for key in ['host', 'rasp_dir', 'rasp_name', 'docker_image']:
         params[key] = config.get('Instance', key)
 
-    main(config.get('Instance', 'project_id'), args.name, config.get('Instance', 'zone'), 
+    main(config.get('Instance', 'project_id'), args.name, config.get('Instance', 'zone'),
          int(args.timeout), int(args.max_restarts), ssh_private_key_path, params, machine_type)
