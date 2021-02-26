@@ -5,14 +5,24 @@
 - restarts in case of preemption
 """
 
+import os
+
+import ConfigParser
 import argparse
 import googleapiclient.discovery
-import time
-import os
-from datetime import datetime, timedelta
-import ConfigParser
-import string
 import logging
+import string
+import sys
+import time
+from datetime import datetime, timedelta
+
+logging.basicConfig(
+    level=logging.CRITICAL,
+    format='[%(asctime)s] %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger('rasp')
+logger.setLevel(logging.INFO)
 
 
 def get_operations(compute, project_id, zone, target_id):
@@ -24,29 +34,31 @@ def get_status(compute, project_id, name, zone):
 
 
 def stop_instance(compute, project_id, name, zone):
-    logging.info('Stopping instance (%s/%s/%s)', project_id, zone, name)
+    logger.info('Stopping instance (%s/%s/%s)', project_id, zone, name)
     op = compute.instances().stop(project=project_id, zone=zone, instance=name).execute()
     wait_for_operation(compute, project_id, zone, op['name'])
 
 
 def start_instance(compute, project_id, name, zone):
-    logging.info('Starting instance (%s/%s/%s)', project_id, zone, name)
-    assert get_status(compute, project_id, name, zone) == 'TERMINATED', 'Instance (%s/%s/%s) is already running' % (project_id, zone, name)
+    logger.info('Starting instance (%s/%s/%s)', project_id, zone, name)
+    assert get_status(compute, project_id, name, zone) == 'TERMINATED', 'Instance (%s/%s/%s) is already running' % (
+        project_id, zone, name)
     instance = compute.instances().start(project=project_id, zone=zone, instance=name).execute()
     instance['startTime'] = datetime.utcnow()
     wait_for_operation(compute, project_id, zone, instance['name'])
-    assert get_status(compute, project_id, name, zone) != 'TERMINATED', 'Instance (%s/%s/%s) must have been started' % (project_id, zone, name)
+    assert get_status(compute, project_id, name, zone) != 'TERMINATED', 'Instance (%s/%s/%s) must have been started' % (
+        project_id, zone, name)
     return instance
 
 
 def wait_for_termination(instance_data, compute, project_id, name, zone, timeout):
-    logging.info("Waiting for %s to terminate", name)
+    logger.info("Waiting for %s to terminate", name)
 
     force_shutdown_time = datetime.utcnow() + timedelta(minutes=timeout)
 
     while get_status(compute, project_id, name, zone) != 'TERMINATED':
         if datetime.utcnow() > force_shutdown_time:
-            logging.error('Instance (%s/%s/%s) timeout!', project_id, zone, name)
+            logger.error('Instance (%s/%s/%s) timeout!', project_id, zone, name)
             stop_instance(compute, project_id, name, zone)
             return False
         time.sleep(60)
@@ -58,7 +70,7 @@ def wait_for_termination(instance_data, compute, project_id, name, zone, timeout
 
 
 def wait_for_operation(compute, project, zone, operation):
-    logging.info('Waiting for operation %s to finish...', operation)
+    logger.info('Waiting for operation %s to finish...', operation)
     while True:
         time.sleep(3)
         result = compute.zoneOperations().get(project=project, zone=zone, operation=operation).execute()
@@ -73,6 +85,7 @@ def populate_template(template, params):
     for k, v in params.iteritems():
         template = template.replace("${%s}" % k.upper(), v)
     return template
+
 
 def create_instance(compute, project, zone, name, params, ssh_private_key_path, machine_type):
     # Get the latest Debian Jessie image.
@@ -134,8 +147,8 @@ def create_instance(compute, project, zone, name, params, ssh_private_key_path, 
                 'key': 'user-data',
                 'value': startup_script
             }, {
-               'key': 'private-key',
-               'value': ssh_private_key
+                'key': 'private-key',
+                'value': ssh_private_key
             }]
         }
     }
@@ -147,13 +160,14 @@ def create_instance(compute, project, zone, name, params, ssh_private_key_path, 
 
     instance['startTime'] = datetime.utcnow()
     wait_for_operation(compute, project, zone, instance['name'])
-    assert get_status(compute, project, name, zone) != 'TERMINATED', 'Instance (%s/%s/%s) must have been started' % (project_id, zone, name)
+    assert get_status(compute, project, name, zone) != 'TERMINATED', 'Instance (%s/%s/%s) must have been started' % (
+        project_id, zone, name)
 
     return instance
 
 
 def delete_instance(compute, project, zone, name):
-    logging.info('Deleting instance %s', name)
+    logger.info('Deleting instance %s', name)
     return compute.instances().delete(
         project=project,
         zone=zone,
@@ -168,15 +182,16 @@ def main(project_id, name, zone, timeout, max_restarts, ssh_private_key_path, pa
     while max_restarts > 0:
         preempted = wait_for_termination(instance, compute, project_id, name, zone, timeout)
         if not preempted:
-            logging.info('Instance (%s/%s/%s) terminated normally', project_id, zone, name)
+            logger.info('Instance (%s/%s/%s) terminated normally', project_id, zone, name)
             break
         else:
             max_restarts -= 1
             if max_restarts > 0:
-                logging.info('Restarting preempted instance (%s/%s/%s)', project_id, zone, name)
+                logger.info('Restarting preempted instance (%s/%s/%s)', project_id, zone, name)
                 instance = start_instance(compute, project_id, name, zone)
             else:
-                logging.warning('Instance (%s/%s/%s) has been preempted and will not be restarted', project_id, zone, name)
+                logger.warning('Instance (%s/%s/%s) has been preempted and will not be restarted', project_id, zone,
+                               name)
     delete_instance(compute, project_id, zone, name)
 
 
@@ -188,8 +203,10 @@ def dt_parse(t):
         ret += timedelta(hours=int(t[24:26]), minutes=int(t[27:]))
     return ret
 
+
 def str_generator(size=6, chars=string.ascii_lowercase):
     return ''.join(random.choice(chars) for _ in range(size))
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
